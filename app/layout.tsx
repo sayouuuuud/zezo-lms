@@ -199,7 +199,7 @@ export default async function RootLayout({
       <body className={`${cairo.className} font-sans antialiased`}>
         <ThemeProvider>
           <CartProvider>
-            <SiteLoader />
+            <SiteLoader loaderText={seoContent?.loaderText} />
             {children}
             <CartModal />
             <PageViewTracker />

@@ -22,7 +22,7 @@ function preload(src: string) {
   })
 }
 
-export function SiteLoader() {
+export function SiteLoader({ loaderText = 'أكاديمية شفاء العليل' }: { loaderText?: string }) {
   const [hidden, setHidden] = useState(false)
   const [leaving, setLeaving] = useState(false)
   const [writing, setWriting] = useState(false)
@@ -70,7 +70,7 @@ export function SiteLoader() {
     <div
       aria-hidden={leaving}
       role="status"
-      aria-label="جارٍ تحميل أكاديمية شفاء العليل"
+      aria-label="جارٍ التحميل"
       aria-busy={!leaving}
       className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-background text-foreground"
       style={{
@@ -91,7 +91,7 @@ export function SiteLoader() {
             style={writing ? undefined : { clipPath: 'inset(0 0 0 100%)' }}
           >
             <p className="font-ruqaa text-[clamp(2.25rem,9vw,5rem)] font-bold leading-[1.65] text-primary">
-              أكاديمية شفاء العليل
+              {loaderText}
             </p>
           </div>
 

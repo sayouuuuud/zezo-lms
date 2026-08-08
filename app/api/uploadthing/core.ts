@@ -22,6 +22,11 @@ export const ourFileRouter = {
     .onUploadComplete(async ({ file }) => {
       return { url: file.url };
     }),
+  // Instructor Image
+  instructorImage: f({ image: { maxFileSize: "16MB", maxFileCount: 1 } })
+    .onUploadComplete(async ({ file }) => {
+      return { url: file.url };
+    }),
   // Lesson video uploaded from admin lesson editor.
   lessonVideo: f({ video: { maxFileSize: "512MB", maxFileCount: 1 } })
     .onUploadComplete(async ({ file }) => {

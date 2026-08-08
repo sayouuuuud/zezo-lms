@@ -91,15 +91,15 @@ const HEADING = {
   description: 'منحنيات تقدّم حقيقية لطلاب بدأوا رحلتهم معانا — الأرقام بتحكي القصة.',
 }
 
-function Heading() {
+function Heading({ badge, title, description }: { badge?: string; title?: string; description?: string }) {
   return (
     <div className="reveal-item mx-auto mb-6 max-w-4xl text-center md:mb-10">
-      <span className="text-sm font-semibold text-green">{HEADING.badge}</span>
+      <span className="text-sm font-semibold text-green">{badge}</span>
       <h2 className="mt-3 text-3xl font-black leading-tight text-foreground sm:text-4xl lg:text-5xl">
-        {HEADING.title}
+        {title}
       </h2>
       <p className="mt-4 text-pretty text-lg leading-relaxed text-muted-foreground">
-        {HEADING.description}
+        {description}
       </p>
     </div>
   )
@@ -301,7 +301,7 @@ function MobileCarousel({ items }: { items: Testimonial[] }) {
   )
 }
 
-function DesktopScrollShowcase({ items }: { items: Testimonial[] }) {
+function DesktopScrollShowcase({ items, heading }: { items: Testimonial[], heading: any }) {
   const [active, setActive] = useState(0)
 
   useEffect(() => {
@@ -334,9 +334,9 @@ function DesktopScrollShowcase({ items }: { items: Testimonial[] }) {
       <div className="sticky top-20 flex h-[calc(100vh-5rem)] w-full flex-col justify-center overflow-hidden pb-10 pt-2">
         <IslamicCorners />
         <div className="relative mx-auto w-full max-w-7xl px-8">
-          <Heading />
+          <Heading badge={heading?.badge} title={heading?.title} description={heading?.description} />
           <div className="reveal-item">
-            <TestimonialCard student={items[active]} active />
+            {items[active] && <TestimonialCard student={items[active]} active />}
           </div>
         </div>
       </div>
@@ -346,17 +346,20 @@ function DesktopScrollShowcase({ items }: { items: Testimonial[] }) {
 
 export function TestimonialsSection({ content }: { content?: any }) {
   const root = useReveal<HTMLElement>('.reveal-item')
+  
+  const displayItems = content?.items?.length > 0 ? content.items : TESTIMONIALS
+  const displayHeading = content || HEADING
 
   return (
     <section ref={root} id="testimonials" className="relative bg-background">
       <div className="relative mx-auto w-full max-w-2xl px-5 py-12 md:hidden">
         <IslamicCorners size={110} />
-        <Heading />
-        <MobileCarousel items={TESTIMONIALS} />
+        <Heading badge={displayHeading.badge} title={displayHeading.title} description={displayHeading.description} />
+        <MobileCarousel items={displayItems} />
       </div>
 
       <div className="hidden md:block">
-        <DesktopScrollShowcase items={TESTIMONIALS} />
+        <DesktopScrollShowcase items={displayItems} heading={displayHeading} />
       </div>
     </section>
   )

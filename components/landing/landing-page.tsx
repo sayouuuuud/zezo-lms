@@ -7,6 +7,7 @@ import { FeaturesSection } from './features-section'
 import { StagesSection } from './stages-section'
 import { StatsSection } from './stats-section'
 import { CtaSection } from './cta-section'
+import { TestimonialsSection } from './testimonials-section'
 import { SiteFooter } from './site-footer'
 import { ScrollRefresh } from './scroll-refresh'
 import type { Stage } from '@/lib/landing-data'
@@ -33,6 +34,7 @@ export function LandingPage({
           <FeaturesSection content={siteContent.features} />
           <StagesSection stages={stages} />
           <StatsSection content={siteContent.stats} />
+          <TestimonialsSection content={siteContent.testimonials} />
           <CtaSection content={siteContent.cta} />
         </main>
         <SiteFooter content={siteContent.footer} />
