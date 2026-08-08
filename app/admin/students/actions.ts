@@ -142,6 +142,15 @@ export async function createStudent(input: StudentInput) {
       return { error: 'البريد الإلكتروني مستخدم بالفعل.' }
     }
 
+    if (input.phone) {
+      const existingPhone = await prisma.user.findFirst({
+        where: { phone: input.phone }
+      })
+      if (existingPhone) {
+        return { error: 'رقم الهاتف مستخدم لحساب آخر بالفعل.' }
+      }
+    }
+
     try {
       const hashedPassword = bcrypt.hashSync(input.password, 10)
       const newUserId = crypto.randomUUID()
@@ -155,8 +164,15 @@ export async function createStudent(input: StudentInput) {
         }
       })
       userId = user.id
-      await prisma.profiles.create({
-        data: {
+      await prisma.profiles.upsert({
+        where: { id: userId },
+        update: {
+          full_name: input.name,
+          email: input.email,
+          phone: input.phone,
+          role: 'student',
+        },
+        create: {
           id: userId,
           full_name: input.name,
           email: input.email,
