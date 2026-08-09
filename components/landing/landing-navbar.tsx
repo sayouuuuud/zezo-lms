@@ -10,12 +10,7 @@ import { useCart } from '@/components/cart/cart-provider'
 import type { NavbarContent } from '@/lib/site-content-defaults'
 import { DEFAULT_SITE_CONTENT } from '@/lib/site-content-defaults'
 
-const navLinks = [
-  { label: 'المنهج', href: '#features' },
-  { label: 'المراحل', href: '#stages' },
-  { label: 'أرقامنا', href: '#stats' },
-  { label: 'آراء الطلاب', href: '#testimonials' },
-]
+
 
 function HamburgerIcon({ open }: { open: boolean }) {
   return (
@@ -100,11 +95,15 @@ export function LandingNavbar({
           >
             {/* ── RIGHT: Logo ── */}
             <Link href="/" className="flex min-w-0 items-center gap-2">
-              <div className="size-8 sm:size-9 rounded-full flex items-center justify-center bg-gold text-navy-deep text-sm font-bold shrink-0">
-                ش
-              </div>
+              {content?.logoUrl ? (
+                <img src={content.logoUrl} alt={content.siteName} className="size-8 sm:size-9 rounded-full object-cover shrink-0" />
+              ) : (
+                <div className="size-8 sm:size-9 rounded-full flex items-center justify-center bg-gold text-navy-deep text-sm font-bold shrink-0">
+                  {content?.siteName?.[0] || 'ƒ'}
+                </div>
+              )}
               <span className="hidden truncate text-sm font-bold text-foreground min-[380px]:inline sm:text-base sm:whitespace-nowrap">
-                أكاديمية شفاء العليل
+                {content?.siteName}
               </span>
             </Link>
 
@@ -112,7 +111,7 @@ export function LandingNavbar({
             <div className="hidden flex-1 items-center justify-center gap-6 md:flex lg:gap-8">
               {/* Desktop nav links */}
               <ul className="hidden md:flex items-center gap-6">
-                {navLinks.map((link) => (
+                {content?.links?.map((link) => (
                   <li key={link.href}>
                     <a
                       href={link.href}
@@ -149,7 +148,7 @@ export function LandingNavbar({
                   href="/student"
                   className="hidden md:block px-5 py-2 rounded-full text-sm font-semibold bg-gold text-navy-deep hover:opacity-90 transition-opacity whitespace-nowrap"
                 >
-                  لوحة التحكم
+                  {content?.ctaAccountText || 'حسابي'}
                 </Link>
               ) : (
                 <>
@@ -157,13 +156,13 @@ export function LandingNavbar({
                     href="/auth"
                     className="hidden lg:block px-4 py-2 rounded-full text-sm font-medium text-foreground hover:bg-muted transition-colors whitespace-nowrap"
                   >
-                    تسجيل الدخول
+                    {content?.ctaLoginText || 'تسجيل الدخول'}
                   </Link>
                   <Link
                     href="/auth"
                     className="hidden md:block px-5 py-2 rounded-full text-sm font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-opacity whitespace-nowrap"
                   >
-                    ابدأ الآن
+                    {content?.ctaRegisterText || 'ابدأ الآن'}
                   </Link>
                 </>
               )}
@@ -210,10 +209,14 @@ export function LandingNavbar({
           style={{ borderColor: 'rgba(200,185,154,0.25)' }}
         >
           <div className="flex items-center gap-2">
-            <div className="size-8 rounded-full flex items-center justify-center bg-gold text-navy-deep text-sm font-bold shrink-0">
-              ش
-            </div>
-            <span className="text-sm font-bold text-foreground">أكاديمية شفاء العليل</span>
+            {content?.logoUrl ? (
+              <img src={content.logoUrl} alt={content.siteName} className="size-8 rounded-full object-cover shrink-0" />
+            ) : (
+              <div className="size-8 rounded-full flex items-center justify-center bg-gold text-navy-deep text-sm font-bold shrink-0">
+                {content?.siteName?.[0] || 'ƒ'}
+              </div>
+            )}
+            <span className="text-sm font-bold text-foreground">{content?.siteName}</span>
           </div>
           <button
             onClick={closeSidebar}
@@ -226,7 +229,7 @@ export function LandingNavbar({
 
         <nav className="flex-1 overflow-y-auto px-4 py-6">
           <ul className="flex flex-col gap-1">
-            {navLinks.map((link) => (
+            {content?.links?.map((link) => (
               <li key={link.href}>
                 <a
                   href={link.href}
@@ -258,7 +261,7 @@ export function LandingNavbar({
               onClick={closeSidebar}
               className="w-full text-center py-2.5 rounded-full text-sm font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
             >
-              لوحة التحكم
+              {content?.ctaAccountText || 'حسابي'}
             </Link>
           ) : (
             <>
@@ -267,14 +270,14 @@ export function LandingNavbar({
                 onClick={closeSidebar}
                 className="w-full text-center py-2.5 rounded-full text-sm font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
               >
-                ابدأ الآن
+                {content?.ctaRegisterText || 'ابدأ الآن'}
               </Link>
               <Link
                 href="/auth"
                 onClick={closeSidebar}
                 className="w-full text-center py-2.5 rounded-full text-sm font-medium text-foreground border border-border/50 hover:bg-muted transition-colors"
               >
-                تسجيل الدخول
+                {content?.ctaLoginText || 'تسجيل الدخول'}
               </Link>
             </>
           )}

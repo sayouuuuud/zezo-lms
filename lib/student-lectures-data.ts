@@ -263,6 +263,40 @@ export async function getPurchasedLectureIds(userId: string): Promise<string[]> 
   return [...ids]
 }
 
+export async function getPurchasedCourseIds(userId: string): Promise<string[]> {
+  const data = await prisma.orders.findMany({
+    where: { student_id: userId, status: 'approved' },
+    select: { order_items: { select: { monthly_course_id: true, term_id: true, item_type: true } } }
+  })
+
+  if (!data) return []
+
+  const courseIds = new Set<string>()
+  const termIds = new Set<string>()
+
+  for (const order of data) {
+    for (const item of order.order_items) {
+      if (item.item_type === 'term_bundle' && item.term_id) {
+        termIds.add(item.term_id)
+      } else if (item.item_type === 'course_bundle' && item.monthly_course_id) {
+        courseIds.add(item.monthly_course_id)
+      }
+    }
+  }
+
+  if (termIds.size > 0) {
+    const termCourses = await prisma.monthly_courses.findMany({
+      where: { term_id: { in: [...termIds] } },
+      select: { id: true }
+    })
+    for (const row of termCourses) {
+      if (row.id) courseIds.add(row.id)
+    }
+  }
+
+  return [...courseIds]
+}
+
 export async function getPurchasedCourses(): Promise<CourseDetail[]> {
   const session = await auth()
   const user = session?.user

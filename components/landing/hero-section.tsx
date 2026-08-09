@@ -494,8 +494,8 @@ export function HeroSection({ content = DEFAULT_SITE_CONTENT.hero }: { content?:
               }}
             >
               <Image
-                src="/teacher.webp"
-                alt="المدرس - أكاديمية شفاء العليل في اللغة العربية"
+                src={isDark ? (content.teacherImageDark || content.teacherImageLight) : content.teacherImageLight}
+                alt={content.teacherImageAlt}
                 width={2400}
                 height={1282}
                 className="h-full w-auto max-w-none"

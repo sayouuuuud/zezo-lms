@@ -23,6 +23,8 @@ import {
   updateSiteContentSection,
   resetSiteContentSection,
 } from '@/app/admin/settings/actions'
+import type { OurFileRouter } from '@/app/api/uploadthing/core'
+import { DEFAULT_SITE_CONTENT } from '@/lib/site-content-defaults'
 import type {
   SiteContent,
   HeroContent,
@@ -143,11 +145,13 @@ function ImageField({
   value,
   onChange,
   hint,
+  endpoint = 'siteImage'
 }: {
   label: string
   value: string
   onChange: (url: string) => void
   hint?: string
+  endpoint?: keyof OurFileRouter
 }) {
   const [uploading, setUploading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -160,7 +164,7 @@ function ImageField({
     }
     setUploading(true)
     try {
-      const res = await uploadFiles('siteImage', { files: [file] })
+      const res = await uploadFiles(endpoint, { files: [file] })
       if (!res || !res[0]) throw new Error('فشل الرفع')
       const url = res[0].url
       onChange(url)
@@ -318,11 +322,13 @@ function HeroEditor({ value, onChange }: { value: HeroContent; onChange: (v: Her
         value={value.teacherImageLight}
         onChange={(v) => set('teacherImageLight', v)}
         hint="مسار من public/ أو رابط خارجي"
+        endpoint="instructorImage"
       />
       <ImageField
         label="صورة الأستاذ (الوضع الداكن)"
         value={value.teacherImageDark}
         onChange={(v) => set('teacherImageDark', v)}
+        endpoint="instructorImage"
       />
       <Field label="النص البديل للصورة (alt)">
         <Input value={value.teacherImageAlt} onChange={(e) => set('teacherImageAlt', e.target.value)} className="text-right" />
@@ -887,17 +893,17 @@ export function SiteContentTab({ initialContent }: { initialContent: SiteContent
     if (res.error) {
       toast.error(res.error)
     } else {
-      // restore local state to the passed-in default
+      // restore local state to the default
       switch (section) {
-        case 'hero': setHero(initialContent.hero); break
-        case 'features': setFeatures(initialContent.features); break
-        case 'stats': setStats(initialContent.stats); break
-        case 'testimonials': setTestimonials(initialContent.testimonials); break
-        case 'cta': setCta(initialContent.cta); break
-        case 'footer': setFooter(initialContent.footer); break
-        case 'navbar': setNavbar(initialContent.navbar); break
-        case 'seo': setSeo(initialContent.seo); break
-        case 'login_panel': setLoginPanel(initialContent.login_panel); break
+        case 'hero': setHero(DEFAULT_SITE_CONTENT.hero); break
+        case 'features': setFeatures(DEFAULT_SITE_CONTENT.features); break
+        case 'stats': setStats(DEFAULT_SITE_CONTENT.stats); break
+        case 'testimonials': setTestimonials(DEFAULT_SITE_CONTENT.testimonials); break
+        case 'cta': setCta(DEFAULT_SITE_CONTENT.cta); break
+        case 'footer': setFooter(DEFAULT_SITE_CONTENT.footer); break
+        case 'navbar': setNavbar(DEFAULT_SITE_CONTENT.navbar); break
+        case 'seo': setSeo(DEFAULT_SITE_CONTENT.seo); break
+        case 'login_panel': setLoginPanel(DEFAULT_SITE_CONTENT.login_panel); break
       }
       toast.success('تمت استعادة القيم الافتراضية.')
       router.refresh()

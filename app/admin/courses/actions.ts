@@ -437,13 +437,22 @@ export async function deleteLecture(id: string) {
   // await cleanupLectureMedia(id).catch((e) => logError('cleanupLectureMedia', e))
 
   try {
+    // 1. Delete order_items (CHECK constraint prevents nulling all refs)
+    await prisma.order_items.deleteMany({ where: { lecture_id: id } })
+
+    // 2. Remove related calendar_events
+    await prisma.calendar_events.deleteMany({ where: { lecture_id: id } })
+
+    // 3. Delete the lecture (lessons, assignments, cart_items, coupon_lectures cascade)
     await prisma.lectures.delete({ where: { id } })
+    
     logActivity({ action: 'delete', resource: 'courses', targetId: id, targetLabel: `محاضرة ID: ${id}` }).catch(() => {})
     revalidatePath('/admin/courses')
     revalidatePath('/')
     return { success: true }
   } catch (error: any) {
-    return { error: 'تعذّر حذف المحاضرة.' }
+    console.error('[deleteLecture] Error:', error?.message || error)
+    return { error: `تعذّر حذف المحاضرة: ${error?.message || 'خطأ غير معروف'}` }
   }
 }
 

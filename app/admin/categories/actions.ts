@@ -295,16 +295,45 @@ export async function updateStage(id: string, input: StageInput) {
 export async function deleteStage(id: string) {
   if (!(await hasResourceAccess('categories', 'manage'))) return { error: 'غير مسموح. لازم تكون أدمن.' }
 
-  // await cleanupStageMedia(id).catch((e) => logError('cleanupStageMedia', e))
-
   try {
+    // Collect child IDs
+    const stageBranches = await prisma.branches.findMany({ where: { stage_id: id }, select: { id: true } })
+    const branchIds = stageBranches.map(b => b.id)
+
+    if (branchIds.length > 0) {
+      const stageLectures = await prisma.lectures.findMany({ where: { branch_id: { in: branchIds } }, select: { id: true } })
+      const stageCourses = await prisma.monthly_courses.findMany({ where: { branch_id: { in: branchIds } }, select: { id: true } })
+      const lectureIds = stageLectures.map(l => l.id)
+      const courseIds = stageCourses.map(c => c.id)
+
+      // 1. Delete order_items (CHECK constraint prevents nulling)
+      if (lectureIds.length > 0) {
+        await prisma.order_items.deleteMany({ where: { lecture_id: { in: lectureIds } } })
+      }
+      if (courseIds.length > 0) {
+        await prisma.order_items.deleteMany({ where: { monthly_course_id: { in: courseIds } } })
+      }
+    }
+
+    // Also delete order_items from terms belonging to this stage
+    const stageTerms = await prisma.terms.findMany({ where: { stage_id: id }, select: { id: true } })
+    if (stageTerms.length > 0) {
+      await prisma.order_items.deleteMany({ where: { term_id: { in: stageTerms.map(t => t.id) } } })
+    }
+
+    // 2. Clear non-cascade relations
+    await prisma.exams.updateMany({ where: { stage_id: id }, data: { stage_id: null } })
+    await prisma.students.updateMany({ where: { stage_id: id }, data: { stage_id: null } })
+
+    // 3. Delete stage (branches, terms, calendar_events, notifications cascade)
     await prisma.stages.delete({ where: { id } })
     logActivity({ action: 'delete', resource: 'categories', targetId: id, targetLabel: `مرحلة ID: ${id}` }).catch(() => {})
     revalidatePath('/admin/categories')
     revalidatePath('/')
     return { success: true }
   } catch (error: any) {
-    return { error: 'تعذّر حذف المرحلة.' }
+    console.error('[deleteStage] Error:', error?.message || error)
+    return { error: `تعذّر حذف المرحلة: ${error?.message || 'خطأ غير معروف'}` }
   }
 }
 
@@ -360,16 +389,36 @@ export async function updateBranch(id: string, input: Omit<BranchInput, 'stageId
 export async function deleteBranch(id: string) {
   if (!(await hasResourceAccess('categories', 'manage'))) return { error: 'غير مسموح. لازم تكون أدمن.' }
 
-  // await cleanupBranchMedia(id).catch((e) => logError('cleanupBranchMedia', e))
-
   try {
+    // Collect IDs of child lectures and monthly courses
+    const branchLectures = await prisma.lectures.findMany({ where: { branch_id: id }, select: { id: true } })
+    const branchCourses = await prisma.monthly_courses.findMany({ where: { branch_id: id }, select: { id: true } })
+    const lectureIds = branchLectures.map(l => l.id)
+    const courseIds = branchCourses.map(c => c.id)
+
+    // 1. Delete order_items that reference these lectures/courses
+    //    (can't just null them — CHECK constraint requires at least one of
+    //     lecture_id / monthly_course_id / term_id to be non-null)
+    if (lectureIds.length > 0) {
+      await prisma.order_items.deleteMany({ where: { lecture_id: { in: lectureIds } } })
+    }
+    if (courseIds.length > 0) {
+      await prisma.order_items.deleteMany({ where: { monthly_course_id: { in: courseIds } } })
+    }
+
+    // 2. Clear other non-cascade relations
+    await prisma.courses.updateMany({ where: { branch_id: id }, data: { branch_id: null } })
+    await prisma.exams.updateMany({ where: { branch_id: id }, data: { branch_id: null } })
+
+    // 3. Delete the branch (lectures, monthly_courses, calendar_events, notifications cascade automatically)
     await prisma.branches.delete({ where: { id } })
     logActivity({ action: 'delete', resource: 'categories', targetId: id, targetLabel: `فرع ID: ${id}` }).catch(() => {})
     revalidatePath('/admin/categories')
     revalidatePath('/')
     return { success: true }
   } catch (error: any) {
-    return { error: 'تعذّر حذف الفرع.' }
+    console.error('[deleteBranch] Error:', error?.message || error)
+    return { error: `تعذّر حذف الفرع: ${error?.message || 'خطأ غير معروف'}` }
   }
 }
 
@@ -434,20 +483,26 @@ export async function updateMonthlyCourse(id: string, input: Omit<MonthlyCourseI
 export async function deleteMonthlyCourse(id: string) {
   if (!(await hasResourceAccess('categories', 'manage'))) return { error: 'غير مسموح. لازم تكون أدمن.' }
 
-  // await cleanupCourseMedia(id).catch((e) => logError('cleanupCourseMedia', e))
-
   try {
+    // 1. Delete order_items (CHECK constraint prevents nulling all refs)
+    await prisma.order_items.deleteMany({ where: { monthly_course_id: id } })
+
+    // 2. Remove reference from lectures
     await prisma.lectures.updateMany({
       where: { monthly_course_id: id },
       data: { monthly_course_id: null }
     })
+
+    // 3. Delete the monthly course
     await prisma.monthly_courses.delete({ where: { id } })
+    
     logActivity({ action: 'delete', resource: 'categories', targetId: id, targetLabel: `كورس ID: ${id}` }).catch(() => {})
     revalidatePath('/admin/categories')
     revalidatePath('/')
     return { success: true }
   } catch (error: any) {
-    return { error: 'تعذّر حذف الكورس.' }
+    console.error('[deleteMonthlyCourse] Error:', error?.message || error)
+    return { error: `تعذّر حذف الكورس: ${error?.message || 'خطأ غير معروف'}` }
   }
 }
 
@@ -498,16 +553,26 @@ export async function deleteTerm(id: string) {
   if (!(await hasResourceAccess('categories', 'manage'))) return { error: 'غير مسموح.' }
 
   try {
+    // 1. Delete order_items (CHECK constraint prevents nulling all refs)
+    await prisma.order_items.deleteMany({ where: { term_id: id } })
+
+    // 2. Remove reference from monthly_courses
     await prisma.monthly_courses.updateMany({
       where: { term_id: id },
       data: { term_id: null }
     })
+
+    // 3. Remove cart_items referencing this term
+    await prisma.cart_items.deleteMany({ where: { term_id: id } })
+
+    // 4. Delete the term
     await prisma.terms.delete({ where: { id } })
     logActivity({ action: 'delete', resource: 'categories', targetId: id }).catch(() => {})
     revalidatePath('/admin/categories')
     return { success: true }
   } catch (error: any) {
-    return { error: 'تعذّر حذف الترم.' }
+    console.error('[deleteTerm] Error:', error?.message || error)
+    return { error: `تعذّر حذف الترم: ${error?.message || 'خطأ غير معروف'}` }
   }
 }
 

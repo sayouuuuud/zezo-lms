@@ -5,7 +5,7 @@ import { getCurrentStudent } from '@/lib/auth-guard'
 import { getStudentTargeting } from './notifications'
 import type { AssignmentStatus } from '@/lib/student-types'
 import { normalizeStatus } from '@/lib/assignments-shared'
-import { getPurchasedLectureIds } from '@/lib/student-lectures-data'
+import { getPurchasedLectureIds, getPurchasedCourseIds } from '@/lib/student-lectures-data'
 
 export async function getStudentExams() {
   const student = await getCurrentStudent()
@@ -97,18 +97,21 @@ export async function getStudentAssignments() {
   const lectureIds = new Set(lectures.map((l) => l.id))
 
   // المحاضرات المشتراة عبر الأوردرات
+  let purchasedCourseIds: string[] = []
   if (student.user_id) {
     const purchasedLectureIds = await getPurchasedLectureIds(student.user_id)
     for (const lid of purchasedLectureIds) lectureIds.add(lid)
+    purchasedCourseIds = await getPurchasedCourseIds(student.user_id)
   }
 
   const allLectureIds = [...lectureIds]
+  const allCourseIds = [...new Set([...legacyCourseIds, ...purchasedCourseIds])]
 
-  if (allLectureIds.length === 0 && legacyCourseIds.length === 0) return []
+  if (allLectureIds.length === 0 && allCourseIds.length === 0) return []
 
   const orClauses = [
     ...(allLectureIds.length > 0 ? [{ lecture_id: { in: allLectureIds } }] : []),
-    ...(legacyCourseIds.length > 0 ? [{ course_id: { in: legacyCourseIds } }] : []),
+    ...(allCourseIds.length > 0 ? [{ course_id: { in: allCourseIds } }] : []),
   ]
 
   const rows = await prisma.assignments.findMany({

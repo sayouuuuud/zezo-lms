@@ -118,8 +118,14 @@ export async function createAssistant(input: {
         role: 'assistant',
       }
     })
-    await prisma.profiles.create({
-      data: {
+    await prisma.profiles.upsert({
+      where: { id: userId },
+      update: {
+        full_name: input.name.trim(),
+        email: input.email.trim(),
+        role: 'assistant',
+      },
+      create: {
         id: userId,
         full_name: input.name.trim(),
         email: input.email.trim(),

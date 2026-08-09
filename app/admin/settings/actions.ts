@@ -46,7 +46,7 @@ export async function resetSiteContentSection(
   }
 
   try {
-    await prisma.site_content.delete({
+    await prisma.site_content.deleteMany({
       where: { section }
     })
 

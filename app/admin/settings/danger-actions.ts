@@ -30,15 +30,43 @@ export async function wipeAllData(password: string) {
   }).catch(() => {})
 
   try {
-    await prisma.$executeRaw`SELECT admin_wipe_all_data(${user.id}::uuid)`
+    // 1. Delete all student users (this cascades to profiles, students, enrollments, etc.)
+    const studentProfiles = await prisma.profiles.findMany({
+      where: { role: 'student' },
+      select: { id: true }
+    })
+    const studentIds = studentProfiles.map(p => p.id)
+    
+    if (studentIds.length > 0) {
+      await prisma.user.deleteMany({
+        where: { id: { in: studentIds } }
+      })
+    }
+
+    // 2. Truncate all domain tables CASCADE
+    await prisma.$executeRawUnsafe(`
+      TRUNCATE TABLE 
+        public.categories, 
+        public.stages, 
+        public.branches, 
+        public.courses, 
+        public.monthly_courses, 
+        public.cart_items,
+        public.orders,
+        public.payments,
+        public.certificates,
+        public.coupons,
+        public.messages,
+        public.notifications,
+        public.activity_logs,
+        public.auth_logs,
+        public.notification_reads
+      CASCADE;
+    `)
+
     return { success: true }
   } catch (error: any) {
     logError('wipeAllData', error)
-    if (error.message.toLowerCase().includes('function') && error.message.includes('admin_wipe_all_data')) {
-      return {
-        error: 'دالة المسح غير موجودة في قاعدة البيانات. شغّل ملف scripts/wipe_data.sql على الـ live DB الأول.',
-      }
-    }
     return { error: 'تعذّر مسح البيانات: ' + error.message }
   }
 }
