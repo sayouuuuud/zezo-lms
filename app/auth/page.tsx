@@ -7,6 +7,7 @@ import { AuthForm } from '@/components/auth/auth-form'
 import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
 import { getSiteContent } from '@/lib/site-content'
+import { prisma } from '@/lib/prisma'
 
 export const metadata: Metadata = {
   title: 'تسجيل الدخول / حساب جديد',
@@ -38,6 +39,11 @@ export default async function AuthPage({
 
   const siteContent = await getSiteContent()
   const panel = siteContent.login_panel
+
+  const stages = await prisma.stages.findMany({
+    select: { id: true, slug: true, title: true },
+    orderBy: { sort_order: 'asc' }
+  })
 
   return (
     <main className="relative min-h-screen bg-background lg:grid lg:grid-cols-2 dark:bg-background">
@@ -143,7 +149,7 @@ export default async function AuthPage({
                 سجّل دخولك أو اعمل حساب جديد وابدأ رحلتك في التفوق.
               </p>
             </div>
-            <AuthForm initialTab={initialTab} />
+            <AuthForm initialTab={initialTab} stages={stages} />
           </div>
         </div>
       </section>

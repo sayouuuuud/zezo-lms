@@ -31,12 +31,21 @@ async function generateStudentCode(): Promise<string> {
 }
 
 async function resolveStageId(grade: string): Promise<string | null> {
-  const slug = grade?.trim()
-  if (!slug) return null
-  const stage = await prisma.stages.findFirst({
-    where: { slug },
+  const identifier = grade?.trim()
+  if (!identifier) return null
+  
+  let stage = await prisma.stages.findFirst({
+    where: { slug: identifier },
     select: { id: true }
   })
+  
+  if (!stage) {
+    stage = await prisma.stages.findFirst({
+      where: { id: identifier },
+      select: { id: true }
+    }).catch(() => null)
+  }
+  
   return stage?.id ?? null
 }
 

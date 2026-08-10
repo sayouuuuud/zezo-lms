@@ -14,13 +14,7 @@ const DEMO_ADMIN = {
   password: '111111',
 }
 
-const grades = [
-  { value: 'sec-1', label: 'الصف الأول الثانوي' },
-  { value: 'sec-2', label: 'الصف الثاني الثانوي' },
-  { value: 'sec-3', label: 'الصف الثالث الثانوي' },
-]
-
-export function AuthForm({ initialTab = 'login' }: { initialTab?: Tab }) {
+export function AuthForm({ initialTab = 'login', stages = [] }: { initialTab?: Tab; stages?: { id: string; slug: string | null; title: string }[] }) {
   const [tab, setTab] = useState<Tab>(initialTab)
   const [showPassword, setShowPassword] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -422,9 +416,9 @@ export function AuthForm({ initialTab = 'login' }: { initialTab?: Tab }) {
                   <option value="" disabled>
                     اختار صفك
                   </option>
-                  {grades.map((g) => (
-                    <option key={g.value} value={g.value} className="text-foreground">
-                      {g.label}
+                  {stages.map((stage) => (
+                    <option key={stage.id} value={stage.slug || stage.id} className="text-foreground">
+                      {stage.title}
                     </option>
                   ))}
                 </select>
