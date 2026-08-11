@@ -31,7 +31,7 @@ type Testimonial = {
 const TESTIMONIALS: Testimonial[] = [
   {
     name: 'محمد أشرف',
-    grade: 'الصف الثالث الثانوي',
+    grade: 'الصف الثاني عشر',
     subject: 'النحو والإعراب',
     quote:
       'كنت فاكر النحو حفظ وخلاص، بس هنا فهمت إن كل قاعدة ليها منطق. بقيت أعرب أي جملة من غير ما أتوتر، ودرجاتي قفزت بشكل مش متوقع.',
@@ -49,7 +49,7 @@ const TESTIMONIALS: Testimonial[] = [
   },
   {
     name: 'سارة محمود',
-    grade: 'الصف الثاني الثانوي',
+    grade: 'الصف الحادي عشر',
     subject: 'البلاغة والنصوص',
     quote:
       'البلاغة كانت أصعب حاجة عندي، ومع طريقة الشرح بالأمثلة والتذوق الأدبي بقيت أحل سؤال البلاغة كامل. أول مرة أحس إن اللغة العربية ممتعة فعلًا.',
@@ -67,7 +67,7 @@ const TESTIMONIALS: Testimonial[] = [
   },
   {
     name: 'يوسف علي',
-    grade: 'الصف الأول الثانوي',
+    grade: 'الصف العاشر',
     subject: 'القراءة والتعبير',
     quote:
       'التعبير كان بيضيع مني درجات كتير. اتعلمت هنا إزاي أبني موضوع متكامل بأفكار مرتبة وأسلوب قوي، والمتابعة المستمرة خلتني ألتزم وأتحسن كل أسبوع.',
@@ -346,7 +346,7 @@ function DesktopScrollShowcase({ items, heading }: { items: Testimonial[], headi
 
 export function TestimonialsSection({ content }: { content?: any }) {
   const root = useReveal<HTMLElement>('.reveal-item')
-  
+
   const displayItems = content?.items?.length > 0 ? content.items : TESTIMONIALS
   const displayHeading = content || HEADING
 

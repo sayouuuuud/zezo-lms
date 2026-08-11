@@ -276,7 +276,7 @@ function buildProfile(student: StudentRecord): StudentProfile {
     rawOrders: [],
     totalLessonsAll: 0,
     skills,
-    stageTitle: 'الصف الثاني الثانوي',
+    stageTitle: 'الصف الحادي عشر',
     assignmentBreakdown,
     presence: {
       isOnline: rng() > 0.5,
