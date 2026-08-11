@@ -52,18 +52,32 @@ export const colorPresets = [
 
 export type PresetId = (typeof colorPresets)[number]['id']
 
+/**
+ * The dashboard palette lives on the `.theme-dashboard` scope so the public
+ * site keeps its own brand colours. The preset therefore has to be written as
+ * a stylesheet rule targeting that scope — writing inline custom properties on
+ * <html> would leak the dashboard colour into the landing/auth pages.
+ */
 export function applyColorPreset(id: PresetId | string) {
   const preset = colorPresets.find((p) => p.id === id)
   if (!preset) return
-  const isDark = document.documentElement.classList.contains('dark')
-  const vals = isDark ? preset.dark : preset.light
+
+  let styleEl = document.getElementById('dynamic-theme') as HTMLStyleElement | null
+  if (!styleEl) {
+    styleEl = document.createElement('style')
+    styleEl.id = 'dynamic-theme'
+    document.head.appendChild(styleEl)
+  }
+
+  styleEl.innerHTML = `.theme-dashboard { --primary: ${preset.light.primary}; --ring: ${preset.light.ring}; --sidebar-primary: ${preset.light.sidebar}; --sidebar-accent: ${preset.light.sidebar}; --sidebar-ring: ${preset.light.ring}; }
+.dark .theme-dashboard { --primary: ${preset.dark.primary}; --ring: ${preset.dark.ring}; --sidebar-primary: ${preset.dark.sidebar}; --sidebar-accent: ${preset.dark.sidebar}; --sidebar-ring: ${preset.dark.ring}; }`
+
+  // Clear any legacy inline overrides left on <html> by older builds.
   const root = document.documentElement
-  root.style.setProperty('--primary', vals.primary)
-  root.style.setProperty('--ring', vals.ring)
-  root.style.setProperty('--sidebar-primary', vals.sidebar)
-  root.style.setProperty('--sidebar-accent', vals.sidebar)
-  root.style.setProperty('--sidebar-ring', vals.ring)
-  
+  for (const prop of ['--primary', '--ring', '--sidebar-primary', '--sidebar-accent', '--sidebar-ring']) {
+    root.style.removeProperty(prop)
+  }
+
   try {
     localStorage.setItem('color-preset', id)
   } catch {}

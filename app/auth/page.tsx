@@ -49,7 +49,7 @@ export default async function AuthPage({
     <main className="relative min-h-screen bg-background lg:grid lg:grid-cols-2 dark:bg-background">
       {/* calligraphy backdrop */}
       <div
-        className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-60 dark:opacity-70 mix-blend-multiply dark:mix-blend-screen"
+        className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-60 dark:opacity-[0.12] mix-blend-multiply dark:mix-blend-screen"
         style={{ backgroundImage: "url('/images/footer-calligraphy.png')" }}
         aria-hidden="true"
       />
@@ -57,7 +57,7 @@ export default async function AuthPage({
       {/* Brand / visual panel */}
       <aside className="relative hidden overflow-hidden bg-primary lg:block dark:bg-card">
         <div
-          className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-70 dark:opacity-60 mix-blend-multiply dark:mix-blend-plus-lighter"
+          className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-70 dark:opacity-[0.18] mix-blend-multiply dark:mix-blend-plus-lighter"
           style={{ backgroundImage: "url('/images/footer-calligraphy.png')" }}
           aria-hidden="true"
         />
@@ -76,7 +76,9 @@ export default async function AuthPage({
                 ƒ(x)
               </span>
             )}
-            <span className="font-heading text-2xl font-bold text-background">{panel.brandName}</span>
+            <span className="font-heading text-2xl font-bold text-background dark:text-foreground">
+              {panel.brandName}
+            </span>
           </Link>
 
           <div className="max-w-md">
@@ -84,12 +86,12 @@ export default async function AuthPage({
               <span className="font-mono">{'// '}</span>
               {panel.badge}
             </span>
-            <h1 className="mt-4 text-balance font-heading text-4xl font-bold leading-tight text-background">
+            <h1 className="mt-4 text-balance font-heading text-4xl font-bold leading-tight text-background dark:text-foreground">
               {panel.headline}
             </h1>
             <ul className="mt-8 space-y-4">
               {panel.perks.map((p) => (
-                <li key={p} className="flex items-center gap-3 text-background/90">
+                <li key={p} className="flex items-center gap-3 text-background/90 dark:text-foreground/90">
                   <span className="grid size-6 shrink-0 place-items-center rounded-full bg-emerald-brand/20 text-emerald-brand">
                     <Check className="size-3.5" />
                   </span>
@@ -99,10 +101,10 @@ export default async function AuthPage({
             </ul>
           </div>
 
-          <div className="flex items-center gap-6 text-background/80">
+          <div className="flex items-center gap-6 text-background/80 dark:text-foreground/80">
             {panel.stats.map((s, i) => (
               <Fragment key={s.label}>
-                {i > 0 && <span className="h-8 w-px bg-background/15" />}
+                {i > 0 && <span className="h-8 w-px bg-background/15 dark:bg-foreground/15" />}
                 <Stat value={s.value} label={s.label} />
               </Fragment>
             ))}

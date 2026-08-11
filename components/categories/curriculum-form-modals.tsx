@@ -12,6 +12,9 @@ import { useCurriculum } from './curriculum-context'
 const textareaClass =
   'w-full resize-none rounded-xl border border-border bg-secondary/60 px-4 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:bg-card'
 
+const selectClass =
+  'w-full rounded-xl border border-border bg-secondary/60 px-4 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-primary focus:bg-card disabled:cursor-not-allowed disabled:opacity-60'
+
 
 
 export function CurriculumFormModals() {
@@ -121,16 +124,14 @@ export function CurriculumFormModals() {
   const [cBranchId, setCBranchId] = useState('')
   const [cIsFree, setCIsFree] = useState(false)
   const [cTermId, setCTermId] = useState<string>('')
+  const [cStageId, setCStageId] = useState('')
 
-  // Terms available for the branch's parent stage.
-  const courseStageTerms = (() => {
-    const branchId = courseBranchId || cBranchId
-    if (!branchId) return []
-    for (const stage of stages) {
-      if (stage.branches.some((b) => b.id === branchId)) return stage.terms ?? []
-    }
-    return []
-  })()
+  // The course lives three levels deep: stage (السنة الدراسية) → branch
+  // (التصنيف الفرعي / المادة) → course (الشهر), with the term belonging to the
+  // stage. The selects below cascade from the chosen stage.
+  const selectedStage = stages.find((s) => s.id === cStageId) ?? null
+  const courseStageBranches = selectedStage?.branches ?? []
+  const courseStageTerms = selectedStage?.terms ?? []
 
   useEffect(() => {
     if (courseFormOpen) {
@@ -143,14 +144,31 @@ export function CurriculumFormModals() {
       setCOldPrice(editingCourse?.oldPrice != null ? String(editingCourse.oldPrice) : '')
       setCBadge(editingCourse?.badge ?? '')
       setCPublished(editingCourse?.isPublished ?? false)
-      setCBranchId(courseBranchId || (stages[0]?.branches[0]?.id ?? ''))
+
+      // Derive the stage from whichever branch we already know about, so the
+      // three selects open pre-filled and consistent with each other.
+      const initialBranchId =
+        editingCourse?.branchId || courseBranchId || stages[0]?.branches[0]?.id || ''
+      const initialStage =
+        stages.find((s) => s.branches.some((b) => b.id === initialBranchId)) ?? stages[0] ?? null
+
+      setCStageId(initialStage?.id ?? '')
+      setCBranchId(initialBranchId || initialStage?.branches[0]?.id || '')
       setCTermId(editingCourse?.termId ?? '')
     }
   }, [courseFormOpen, editingCourse, courseBranchId, stages])
 
+  // Switching the stage invalidates the branch/term picked from the old stage.
+  const handleCourseStageChange = (stageId: string) => {
+    const stage = stages.find((s) => s.id === stageId)
+    setCStageId(stageId)
+    setCBranchId(stage?.branches[0]?.id ?? '')
+    setCTermId('')
+  }
+
   const handleCourseSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!cTitle.trim()) return
+    if (!cTitle.trim() || !cBranchId) return
     submitCourseForm({
       title: cTitle.trim(),
       description: cDescription.trim(),
@@ -159,7 +177,7 @@ export function CurriculumFormModals() {
       oldPrice: cOldPrice.trim() ? Number(cOldPrice) : null,
       badge: cBadge.trim(),
       isPublished: cPublished,
-      branchId: courseBranchId || cBranchId,
+      branchId: cBranchId,
       termId: cTermId || null,
     })
   }
@@ -231,7 +249,7 @@ export function CurriculumFormModals() {
             <textarea
               value={rows}
               onChange={(e) => setRows(e.target.value)}
-              placeholder={'الجبر والمتطابقات\nحساب المثلثات\nالهندسة التحليلية'}
+              placeholder={'الجبر والمتطابقات\nح��اب المثلثات\nالهندسة التحليلية'}
               rows={3}
               className={textareaClass}
             />
@@ -337,25 +355,68 @@ export function CurriculumFormModals() {
         description="الكورس (الشهر) بيجمع محاضرات الفرع بالترتيب ويقدر الطالب يشتريه كامل"
       >
         <form onSubmit={handleCourseSubmit} className="space-y-4">
-          {!editingCourse && !courseBranchId && (
-            <Field label="الفرع (المادة)">
-              <select
-                value={cBranchId}
-                onChange={(e) => setCBranchId(e.target.value)}
-                className="w-full rounded-xl border border-border bg-secondary/60 px-4 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-primary focus:bg-card"
+          <div className="rounded-xl border border-border bg-secondary/30 p-4">
+            <p className="mb-3 text-xs font-medium text-muted-foreground">
+              مكان الكورس في المنهج
+            </p>
+            <div className="flex flex-col gap-4">
+              <Field label="السنة الدراسية (التصنيف الرئيسي)">
+                <select
+                  value={cStageId}
+                  onChange={(e) => handleCourseStageChange(e.target.value)}
+                  className={selectClass}
+                >
+                  {stages.length === 0 && <option value="">لا توجد تصنيفات رئيسية</option>}
+                  {stages.map((stage) => (
+                    <option key={stage.id} value={stage.id}>
+                      {stage.title}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
+              <Field
+                label="الترم"
+                hint="الطالب المشترك في الترم يوصل لهذا الكورس تلقائياً"
               >
-                {stages.map((stage) => (
-                  <optgroup key={stage.id} label={stage.title}>
-                    {stage.branches.map((b) => (
-                      <option key={b.id} value={b.id}>
-                        {b.title}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-            </Field>
-          )}
+                <select
+                  value={cTermId}
+                  onChange={(e) => setCTermId(e.target.value)}
+                  className={selectClass}
+                  disabled={courseStageTerms.length === 0}
+                >
+                  <option value="">
+                    {courseStageTerms.length === 0
+                      ? 'لا توجد ترمات في هذه السنة — ضيف ترم أولاً'
+                      : '— بدون ترم —'}
+                  </option>
+                  {courseStageTerms.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.title}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
+              <Field label="الفرع / المادة (التصنيف الفرعي)">
+                <select
+                  value={cBranchId}
+                  onChange={(e) => setCBranchId(e.target.value)}
+                  className={selectClass}
+                  disabled={courseStageBranches.length === 0}
+                >
+                  {courseStageBranches.length === 0 && (
+                    <option value="">لا توجد فروع في هذه السنة — ضيف فرع أولاً</option>
+                  )}
+                  {courseStageBranches.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.title}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </div>
+          </div>
           <Field label="اسم الكورس (مثل: كورس شهر أكتوبر)">
             <Input
               value={cTitle}
@@ -403,22 +464,6 @@ export function CurriculumFormModals() {
                 />
               </Field>
             </div>
-          )}
-          {courseStageTerms.length > 0 && (
-            <Field label="ينتمي لترم" hint="الطالب المشترك في الترم يوصل لهذا الكورس تلقائياً">
-              <select
-                value={cTermId}
-                onChange={(e) => setCTermId(e.target.value)}
-                className="w-full rounded-xl border border-border bg-secondary/60 px-4 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-primary focus:bg-card"
-              >
-                <option value="">— بدون ترم —</option>
-                {courseStageTerms.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.title}
-                  </option>
-                ))}
-              </select>
-            </Field>
           )}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-1">
             <Field label="الشارة (اختياري)">

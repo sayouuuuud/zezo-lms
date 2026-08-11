@@ -23,7 +23,7 @@ export function StudentLayout({ children }: { children: ReactNode }) {
   }, [profile, isDark])
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="theme-dashboard flex min-h-screen bg-background text-foreground">
       <StudentSidebar
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
