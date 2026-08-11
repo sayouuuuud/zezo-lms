@@ -6,6 +6,7 @@ import { Header } from './header'
 import { useTheme } from '@/components/theme-provider'
 import { PageTransition } from '@/components/page-transition'
 import { PermissionsProvider } from './permissions-context'
+import { DashboardThemeScope } from '@/components/dashboard-theme-scope'
 import type { PermissionMap } from '@/lib/permissions'
 
 export function DashboardLayout({
@@ -21,6 +22,7 @@ export function DashboardLayout({
 
   return (
     <div className="theme-dashboard flex min-h-screen bg-background text-foreground">
+      <DashboardThemeScope />
       <Sidebar
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
