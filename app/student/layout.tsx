@@ -20,6 +20,7 @@ import { PresenceHeartbeat } from '@/components/student/presence-heartbeat'
 
 import { BlockedUser } from '@/components/student/blocked-user'
 import { DeviceGuard } from '@/components/student/security/device-guard'
+import { StudentThemeScope } from '@/components/student/student-theme-scope'
 
 export default async function StudentLayout({ children }: { children: ReactNode }) {
   // Fetch the portal data in parallel instead of a slow sequential waterfall.
@@ -49,7 +50,12 @@ export default async function StudentLayout({ children }: { children: ReactNode 
   const resolvedProfile = profile ?? defaultProfile
 
   if (resolvedProfile.status === 'موقوف') {
-    return <BlockedUser />
+    return (
+      <div className="theme-dashboard">
+        <StudentThemeScope />
+        <BlockedUser />
+      </div>
+    )
   }
 
   return (
@@ -61,6 +67,7 @@ export default async function StudentLayout({ children }: { children: ReactNode 
       announcements,
       activity
     }}>
+      <StudentThemeScope />
       <LayoutComponent>{children}</LayoutComponent>
       {profile && <PresenceHeartbeat />}
       {profile && <DeviceGuard />}
