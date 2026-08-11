@@ -7,7 +7,7 @@ import { useReveal } from '@/lib/use-reveal'
 const DEFAULT_STAGES = [
   {
     id: 1,
-    name: 'الصف الأول الثانوي',
+    name: 'الصف العاشر',
     description: 'أساسيات اللغة العربية والقواعد الأساسية.',
     icon: BookOpen,
     image: '/images/arabic_manuscript.jpg',
@@ -15,7 +15,7 @@ const DEFAULT_STAGES = [
   },
   {
     id: 2,
-    name: 'الصف الثاني الثانوي',
+    name: 'الصف الحادي عشر',
     description: 'تعمّق في النحو والبلاغة والأدب.',
     icon: GraduationCap,
     image: '/images/golden_quill_arabic.jpg',
@@ -23,7 +23,7 @@ const DEFAULT_STAGES = [
   },
   {
     id: 3,
-    name: 'الصف الثالث الثانوي',
+    name: 'الصف الثاني عشر',
     description: 'إتقان اللغة والتحضير للامتحانات.',
     icon: Award,
     image: '/images/arabic_books_stack.jpg',
@@ -37,32 +37,32 @@ export function StagesSection({ stages: dbStages }: { stages?: any[] }) {
 
   const displayStages = (dbStages && dbStages.length > 0)
     ? dbStages.map((s, idx) => ({
-        id: s.id || idx + 1,
-        name: s.title || s.name || DEFAULT_STAGES[idx % DEFAULT_STAGES.length].name,
-        description: s.subtitle || s.description || DEFAULT_STAGES[idx % DEFAULT_STAGES.length].description,
-        image: s.image || DEFAULT_STAGES[idx % DEFAULT_STAGES.length].image,
-        units: (s.branches && s.branches.length > 0)
-          ? s.branches.map((b: any) => b.title || b.name)
-          : (s.courses && s.courses.length > 0)
-            ? s.courses.map((c: any) => c.title || c.name)
-            : DEFAULT_STAGES[idx % DEFAULT_STAGES.length].units,
-      }))
+      id: s.id || idx + 1,
+      name: s.title || s.name || DEFAULT_STAGES[idx % DEFAULT_STAGES.length].name,
+      description: s.subtitle || s.description || DEFAULT_STAGES[idx % DEFAULT_STAGES.length].description,
+      image: s.image || DEFAULT_STAGES[idx % DEFAULT_STAGES.length].image,
+      units: (s.branches && s.branches.length > 0)
+        ? s.branches.map((b: any) => b.title || b.name)
+        : (s.courses && s.courses.length > 0)
+          ? s.courses.map((c: any) => c.title || c.name)
+          : DEFAULT_STAGES[idx % DEFAULT_STAGES.length].units,
+    }))
     : DEFAULT_STAGES
 
   return (
     <section id="stages" className="relative overflow-hidden bg-[#eee6d5] dark:bg-[#120e0a] py-14 sm:py-20 md:py-32">
       {/* خلفية SVG التراثية ممتدة بعرض الشاشة بالكامل من الحافة للحافة */}
-      <div 
+      <div
         className="absolute bottom-0 w-[100vw] left-1/2 -translate-x-1/2 h-[40%] pointer-events-none z-0 mix-blend-multiply opacity-25"
         style={{
           maskImage: 'linear-gradient(to top, black 85%, transparent 100%)',
           WebkitMaskImage: 'linear-gradient(to top, black 85%, transparent 100%)',
         }}
       >
-        <img 
-          src="/images/picsvg_download.svg?v=3" 
-          alt="" 
-          aria-hidden="true" 
+        <img
+          src="/images/picsvg_download.svg?v=3"
+          alt=""
+          aria-hidden="true"
           className="w-[100vw] min-w-[100vw] h-full object-fill block"
         />
       </div>
