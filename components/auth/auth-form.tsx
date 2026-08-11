@@ -4,8 +4,8 @@ import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { Eye, EyeOff, Loader2, Lock, Mail, Phone, User, GraduationCap, Check, AlertCircle, ShieldCheck, ArrowRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { recordLogin } from '@/app/auth/audit-actions'
-import { signIn, getSession } from 'next-auth/react'
+import { recordLogin, resolveLoginDestination } from '@/app/auth/audit-actions'
+import { signIn, signOut } from 'next-auth/react'
 
 type Tab = 'login' | 'register'
 
@@ -66,23 +66,22 @@ export function AuthForm({ initialTab = 'login', stages = [] }: { initialTab?: T
           return
         }
 
-        const session = await getSession()
-        const user = session?.user as any
+        // The destination is resolved on the server so the role always comes
+        // from the database — the client session can still be empty at this
+        // point, which used to drop admins on the student portal.
+        const resolved = await resolveLoginDestination()
 
-        let destination = '/student'
-        if (user) {
-          if (user.role === 'admin' || user.role === 'assistant') {
-            destination = '/admin/dashboard'
-          } else {
-            if (user.status === 'موقوف') {
-              // Sign out if suspended
-              await fetch('/api/auth/signout', { method: 'POST' })
-              setError('تم إيقاف حسابك. يرجى التواصل مع الإدارة.')
-              return
-            }
-            destination = '/student'
+        if ('error' in resolved) {
+          if (resolved.error === 'suspended') {
+            await signOut({ redirect: false })
+            setError('تم إيقاف حسابك. يرجى التواصل مع الإدارة.')
+            return
           }
+          setError('مقدرناش نكمّل تسجيل الدخول. حاول تاني.')
+          return
         }
+
+        const destination = resolved.destination
 
         if (destination === '/admin/dashboard') {
           recordLogin().catch(() => { })
