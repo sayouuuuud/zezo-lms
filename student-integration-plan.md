@@ -62,7 +62,7 @@ alter table public.lessons
   add column if not exists content_type text not null default 'فيديو'
   check (content_type in ('فيديو','مقال','تمرين'));
 
--- اسم المدرّس على مستوى المحاضرة بدل 'أ. عبد السلام' الثابتة
+-- اسم المدرّس على مستوى المحاضرة بدل 'أكاديمية شفاء العليل' الثابتة
 alter table public.lectures
   add column if not exists instructor text;
 

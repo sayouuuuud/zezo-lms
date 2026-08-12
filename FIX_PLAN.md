@@ -133,7 +133,7 @@
 ## Milestone 6 — اسم/شعار صفحة الدخول من الإدارة (#6)
 
 ### السبب الجذري
-"عبد السلام" hardcoded في `app/auth/page.tsx` (~60، ~108). `login_panel` في `lib/site-content-defaults.ts` فيه `badge/headline/perks/stats` فقط — بدون `brandName`/`logoUrl`.
+"أكاديمية شفاء العليل" hardcoded في `app/auth/page.tsx` (~60، ~108). `login_panel` في `lib/site-content-defaults.ts` فيه `badge/headline/perks/stats` فقط — بدون `brandName`/`logoUrl`.
 
 ### الملفات المتأثرة
 - `lib/site-content-defaults.ts`
@@ -143,9 +143,9 @@
 - (اختياري) `components/dashboard/header.tsx` / navbar
 
 ### خطوات التنفيذ
-1. أضف `brandName: string` و`logoUrl: string` لنوع `LoginPanelContent` + defaults (`brandName:'عبد السلام'`, `logoUrl:''`).
+1. أضف `brandName: string` و`logoUrl: string` لنوع `LoginPanelContent` + defaults (`brandName:'أكاديمية شفاء العليل'`, `logoUrl:''`).
 2. في `site-content-tab.tsx` قسم `login_panel`: أضف Field للاسم (Input) وField لرفع الشعار (استخدم مكوّن رفع الصور الموجود، ابحث `ImageUploadField`).
-3. في `app/auth/page.tsx`: اقرأ `panel.brandName`/`panel.logoUrl` واعرضهما بدل النص الثابت. أزل "عبد السلام".
+3. في `app/auth/page.tsx`: اقرأ `panel.brandName`/`panel.logoUrl` واعرضهما بدل النص الثابت. أزل "أكاديمية شفاء العليل".
 4. تأكّد `getSiteContent()` يرجّع الحقول الجديدة (JSON — لا تغيير DB).
 
 ### القبول

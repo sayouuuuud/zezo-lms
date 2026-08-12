@@ -7,7 +7,7 @@ import { auth } from '@/auth'
 import type { Conversation, ChatMessage, TicketStatus } from '@/lib/student-messages-data'
 import { getRelativeTimeArabic } from '@/lib/utils'
 
-const TEACHER_NAME = 'أ. عبد السلام'
+const TEACHER_NAME = 'أكاديمية شفاء العليل'
 const TEACHER_ROLE = 'المدرّس وفريق الدعم'
 const TEACHER_INITIALS = 'ع'
 
