@@ -66,7 +66,7 @@ const navItems: NavItemOrGroup[] = [
     icon: BookOpen,
     items: [
       { label: 'التصنيفات', icon: Layers, href: '/admin/categories', resource: 'categories' },
-      { label: 'المحاضرات', icon: BookOpen, href: '/admin/courses', resource: 'courses' },
+      { label: 'الكورسات والمحاضرات', icon: BookOpen, href: '/admin/courses', resource: 'courses' },
     ]
   },
   {
