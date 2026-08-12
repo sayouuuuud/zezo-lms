@@ -14,10 +14,13 @@ import {
   Tags,
   UploadCloud,
   ReceiptText,
+  Copy,
+  Check,
+  Wallet,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useCart } from './cart-provider'
-import { createOrder, getCheckoutDefaults } from '@/app/cart-actions'
+import { createOrder, getCheckoutDefaults, getPaymentAccounts } from '@/app/cart-actions'
 import { uploadFiles } from '@/lib/uploadthing'
 
 function formatEGP(value: number) {
@@ -66,6 +69,10 @@ export function CartModal() {
   const [receiptUrl, setReceiptUrl] = useState('')
   const [uploadingReceipt, setUploadingReceipt] = useState(false)
   const receiptInputRef = useRef<HTMLInputElement>(null)
+  const [paymentAccounts, setPaymentAccounts] = useState<
+    { method: string; account: string; holder: string; note?: string }[]
+  >([])
+  const [copiedAccount, setCopiedAccount] = useState(false)
 
   async function handleReceiptFile(file: File | undefined) {
     if (!file) return
@@ -106,8 +113,15 @@ export function CartModal() {
         setName((v) => v || d.name)
         setPhone((v) => v || d.phone)
       })
+      getPaymentAccounts().then(setPaymentAccounts).catch(() => {})
     }
   }, [view])
+
+  function copyAccountNumber(account: string) {
+    navigator.clipboard?.writeText(account)
+    setCopiedAccount(true)
+    setTimeout(() => setCopiedAccount(false), 1500)
+  }
 
   // lock body scroll while open
   useEffect(() => {
@@ -318,6 +332,49 @@ export function CartModal() {
                   ))}
                 </select>
               </Field>
+
+              {(() => {
+                const selectedAccount = paymentAccounts.find((a) => a.method === method)
+                if (!selectedAccount) return null
+                return (
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-dashed border-primary/40 bg-primary/5 px-4 py-3">
+                    <div className="flex items-start gap-2.5">
+                      <div className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+                        <Wallet className="size-4" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">حوّل المبلغ على</p>
+                        <p className="font-mono text-sm font-bold text-foreground" dir="ltr">
+                          {selectedAccount.account}
+                        </p>
+                        {selectedAccount.holder && (
+                          <p className="text-xs text-muted-foreground">{selectedAccount.holder}</p>
+                        )}
+                        {selectedAccount.note && (
+                          <p className="mt-1 text-xs text-muted-foreground">{selectedAccount.note}</p>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => copyAccountNumber(selectedAccount.account)}
+                      className="flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted"
+                    >
+                      {copiedAccount ? (
+                        <>
+                          <Check className="size-3.5 text-emerald-600" />
+                          تم النسخ
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="size-3.5" />
+                          نسخ
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )
+              })()}
 
               <Field label="رقم العملية / التحويل (اختياري)">
                 <input

@@ -148,6 +148,22 @@ export type StageOfferContent = {
   guaranteeText: string
 }
 
+/** حساب استقبال دفع — رقم محفظة / إنستاباي / IBAN يحوّل الطالب عليه */
+export type PaymentAccountItem = {
+  /** لازم يطابق اسم وسيلة الدفع في نموذج الدفع (مثال: فودافون كاش) */
+  method: string
+  /** رقم المحفظة أو عنوان إنستاباي أو رقم الآيبان */
+  account: string
+  /** اسم صاحب الحساب (اختياري) */
+  holder: string
+  /** ملاحظة إضافية تظهر للطالب (اختياري) */
+  note?: string
+}
+
+export type PaymentAccountsContent = {
+  items: PaymentAccountItem[]
+}
+
 export type SiteContent = {
   hero: HeroContent
   features: FeaturesContent
@@ -159,6 +175,7 @@ export type SiteContent = {
   seo: SeoContent
   login_panel: LoginPanelContent
   stage_offer: StageOfferContent
+  payment_accounts: PaymentAccountsContent
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -400,12 +417,24 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     brandName: 'عبد السلام',
     logoUrl: '',
   },
+
+  // فاضية بشكل افتراضي — الأدمن لازم يضيف أرقام المحافظ/إنستاباي/الحسابات البنكية
+  // من الإعدادات، وبعدها هتظهر للطالب في نموذج الدفع.
+  payment_accounts: {
+    items: [
+      { method: 'فودافون كاش', account: '', holder: '' },
+      { method: 'اتصالات كاش', account: '', holder: '' },
+      { method: 'أورنج كاش', account: '', holder: '' },
+      { method: 'إنستا باي', account: '', holder: '' },
+      { method: 'تحويل بنكي', account: '', holder: '' },
+    ],
+  },
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Deep merge — source overrides target at every key.
 // Arrays replace entirely (not concat). Missing keys fall back to default.
-// ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────��───────
 
 export function deepMerge<T>(target: T, source: Partial<T>): T {
   if (!source || typeof source !== 'object' || Array.isArray(source)) {
