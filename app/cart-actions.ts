@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { computeCoupon } from '@/app/coupon-actions'
 import { auth } from '@/auth'
+import { getSiteContent } from '@/lib/site-content'
 
 export type CartItem = {
   lectureId: string | null
@@ -306,6 +307,15 @@ export async function removeFromCart(lectureId: string) {
   }
   revalidatePath('/', 'layout')
   return { success: true }
+}
+
+// حسابات استقبال الدفع (رقم المحفظة / إنستاباي / الحساب البنكي) التي يديرها
+// الأدمن من الإعدادات — تُعرض للطالب في نموذج الدفع بجانب وسيلة الدفع المختارة.
+export async function getPaymentAccounts(): Promise<
+  { method: string; account: string; holder: string; note?: string }[]
+> {
+  const content = await getSiteContent()
+  return (content.payment_accounts?.items ?? []).filter((item) => item.account.trim() !== '')
 }
 
 export async function getCheckoutDefaults(): Promise<{ name: string; phone: string; email: string }> {

@@ -15,6 +15,7 @@ import {
   type SeoContent,
   type LoginPanelContent,
   type StageOfferContent,
+  type PaymentAccountsContent,
 } from '@/lib/site-content-defaults'
 
 export { DEFAULT_SITE_CONTENT }
@@ -36,6 +37,8 @@ export type {
   TestimonialItem,
   JourneyPoint,
   FooterLink,
+  PaymentAccountsContent,
+  PaymentAccountItem,
 } from '@/lib/site-content-defaults'
 
 export async function getSiteContent(): Promise<SiteContent> {
@@ -62,6 +65,7 @@ export async function getSiteContent(): Promise<SiteContent> {
       seo:          deepMerge(DEFAULT_SITE_CONTENT.seo,          (dbMap.seo          ?? {}) as Partial<SeoContent>),
       login_panel:  deepMerge(DEFAULT_SITE_CONTENT.login_panel,  (dbMap.login_panel  ?? {}) as Partial<LoginPanelContent>),
       stage_offer:  deepMerge(DEFAULT_SITE_CONTENT.stage_offer,  (dbMap.stage_offer  ?? {}) as Partial<StageOfferContent>),
+      payment_accounts: deepMerge(DEFAULT_SITE_CONTENT.payment_accounts, (dbMap.payment_accounts ?? {}) as Partial<PaymentAccountsContent>),
     }
   } catch (err) {
     if (

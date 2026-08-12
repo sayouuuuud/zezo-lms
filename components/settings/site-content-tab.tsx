@@ -44,6 +44,8 @@ import type {
   SeoContent,
   LoginPanelContent,
   LoginPanelStat,
+  PaymentAccountsContent,
+  PaymentAccountItem,
 } from '@/lib/site-content-defaults'
 
 // ── Shared primitives ──────────────────────────────────────────────────────
@@ -268,7 +270,7 @@ function StringListEditor({
   )
 }
 
-// ── Section editors ────────────────────────────────────────────────────────
+// ── Section editors ────────────────────────────────────────��───────────────
 
 function HeroEditor({ value, onChange }: { value: HeroContent; onChange: (v: HeroContent) => void }) {
   const set = <K extends keyof HeroContent>(k: K, v: HeroContent[K]) => onChange({ ...value, [k]: v })
@@ -404,7 +406,7 @@ function FeaturesEditor({ value, onChange }: { value: FeaturesContent; onChange:
             <Field label="اسم الأيقونة" hint="lightbulb / video / clipboard / chart"><Input value={item.icon} onChange={(e) => updateItem(i, { icon: e.target.value })} dir="ltr" /></Field>
             <Field label="العنوان"><Input value={item.title} onChange={(e) => updateItem(i, { title: e.target.value })} className="text-right sm:col-span-2" /></Field>
           </div>
-          <Field label="الوصف"><Textarea value={item.description} onChange={(v) => updateItem(i, { description: v })} rows={2} /></Field>
+          <Field label="ا��وصف"><Textarea value={item.description} onChange={(v) => updateItem(i, { description: v })} rows={2} /></Field>
         </div>
       ))}
       <Button type="button" variant="outline" size="sm" onClick={() => set('items', [...value.items, { step: `٠${value.items.length + 1}`, title: '', description: '', icon: 'lightbulb' }])} className="gap-2">
@@ -854,6 +856,68 @@ function LoginPanelEditor({ value, onChange }: { value: LoginPanelContent; onCha
   )
 }
 
+function PaymentAccountsEditor({
+  value,
+  onChange,
+}: {
+  value: PaymentAccountsContent
+  onChange: (v: PaymentAccountsContent) => void
+}) {
+  const updateItem = (i: number, patch: Partial<PaymentAccountItem>) => {
+    const next = value.items.map((item, idx) => (idx === i ? { ...item, ...patch } : item))
+    onChange({ items: next })
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-xs text-muted-foreground text-right">
+        اكتب رقم المحفظة أو عنوان إنستاباي أو رقم الحساب البنكي لكل وسيلة دفع. الوسيلة اللي تتسيب فاضية
+        (بدون رقم) هتفضل من غير رقم ظاهر للطالب في نموذج الدفع.
+      </p>
+      {value.items.map((item, i) => (
+        <div key={i} className="rounded-lg border border-border p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="text-destructive hover:text-destructive"
+              onClick={() => onChange({ items: value.items.filter((_, idx) => idx !== i) })}
+            >
+              <Trash2 className="size-4" />
+            </Button>
+            <p className="text-sm font-semibold text-foreground">{item.method || 'وسيلة دفع جديدة'}</p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="اسم وسيلة الدفع" hint="لازم يطابق اسمها في نموذج الدفع، مثال: فودافون كاش">
+              <Input value={item.method} onChange={(e) => updateItem(i, { method: e.target.value })} className="text-right" />
+            </Field>
+            <Field label="رقم المحفظة / عنوان إنستاباي / رقم الحساب">
+              <Input value={item.account} onChange={(e) => updateItem(i, { account: e.target.value })} dir="ltr" className="text-left font-mono" placeholder="مثال: 010 1234 5678" />
+            </Field>
+            <Field label="اسم صاحب الحساب (اختياري)">
+              <Input value={item.holder} onChange={(e) => updateItem(i, { holder: e.target.value })} className="text-right" />
+            </Field>
+            <Field label="ملاحظة إضافية (اختياري)">
+              <Input value={item.note ?? ''} onChange={(e) => updateItem(i, { note: e.target.value })} className="text-right" />
+            </Field>
+          </div>
+        </div>
+      ))}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => onChange({ items: [...value.items, { method: '', account: '', holder: '' }] })}
+        className="gap-2"
+      >
+        <Plus className="size-3.5" />
+        إضافة وسيلة دفع
+      </Button>
+    </div>
+  )
+}
+
 // ── Main export ────────────────────────────────────────────────────────────
 
 export function SiteContentTab({ initialContent }: { initialContent: SiteContent }) {
@@ -871,6 +935,7 @@ export function SiteContentTab({ initialContent }: { initialContent: SiteContent
   const [navbar, setNavbar] = useState<NavbarContent>(initialContent.navbar)
   const [seo, setSeo] = useState<SeoContent>(initialContent.seo)
   const [loginPanel, setLoginPanel] = useState<LoginPanelContent>(initialContent.login_panel)
+  const [paymentAccounts, setPaymentAccounts] = useState<PaymentAccountsContent>(initialContent.payment_accounts)
 
   const [savingSection, setSavingSection] = useState<string | null>(null)
 
@@ -904,6 +969,7 @@ export function SiteContentTab({ initialContent }: { initialContent: SiteContent
         case 'navbar': setNavbar(DEFAULT_SITE_CONTENT.navbar); break
         case 'seo': setSeo(DEFAULT_SITE_CONTENT.seo); break
         case 'login_panel': setLoginPanel(DEFAULT_SITE_CONTENT.login_panel); break
+        case 'payment_accounts': setPaymentAccounts(DEFAULT_SITE_CONTENT.payment_accounts); break
       }
       toast.success('تمت استعادة القيم الافتراضية.')
       router.refresh()
@@ -982,6 +1048,14 @@ export function SiteContentTab({ initialContent }: { initialContent: SiteContent
       editor: <LoginPanelEditor value={loginPanel} onChange={setLoginPanel} />,
       onSave: () => save('login_panel', loginPanel),
       onReset: () => reset('login_panel', null),
+    },
+    {
+      id: 'payment_accounts',
+      title: 'حسابات استقبال الدفع',
+      description: 'أرقام المحافظ وإنستاباي والحسابات البنكية التي تظهر للطالب عند الدفع',
+      editor: <PaymentAccountsEditor value={paymentAccounts} onChange={setPaymentAccounts} />,
+      onSave: () => save('payment_accounts', paymentAccounts),
+      onReset: () => reset('payment_accounts', null),
     },
 
   ]
