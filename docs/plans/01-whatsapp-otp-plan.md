@@ -343,7 +343,7 @@ export async function sendWhatsAppText(input: {
 /** نص رسالة كود الدخول. */
 export function loginOtpText(code: string, minutes: number) {
   return [
-    'منصة عبد السلام للرياضيات',
+    'منصة أكاديمية شفاء العليل ل اللغة العربية',
     '',
     `كود تسجيل الدخول: *${code}*`,
     `الكود صالح لمدة ${minutes} دقايق.`,
@@ -360,7 +360,7 @@ export function paymentApprovedText(input: {
   items: string[]
 }) {
   const lines = [
-    'منصة عبد السلام للرياضيات',
+    'منصة أكاديمية شفاء العليل ل اللغة العربية',
     '',
     `أهلاً ${input.studentName || 'يا بطل'} 👋`,
     `تم تأكيد دفع طلبك رقم ${input.orderCode} بمبلغ ${input.total} ج.م.`,
@@ -550,7 +550,7 @@ export async function sendLoginCode(to: string, code: string, minutes: number) {
     to,
     subject: `كود تسجيل الدخول: ${code}`,
     html: loginCodeEmailHtml(code, minutes),
-    text: `كود تسجيل الدخول في منصة عبد السلام هو: ${code}\nالكود صالح لمدة ${minutes} دقايق.`,
+    text: `كود تسجيل الدخول في منصة أكاديمية شفاء العليل هو: ${code}\nالكود صالح لمدة ${minutes} دقايق.`,
   })
 }
 ```

@@ -367,7 +367,7 @@ export function AdminLectureDetail({
             <Input
               value={instructor}
               onChange={(e) => setInstructor(e.target.value)}
-              placeholder="مثال: أ. محمد عبد السلام"
+              placeholder="مثال: أ. محمد أكاديمية شفاء العليل"
             />
           </Field>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">

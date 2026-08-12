@@ -502,5 +502,5 @@ const [saving, setSaving]
 | Announcements | Fully mock (`student-data.ts`) | Server action reading `announcements` table |
 | Lesson `type` | Hardcoded `'فيديو'` in `mapOneLesson()` | Read from `lessons.content_type` column |
 | Assignment `dueDate` | Empty string from DB mapper | Add `due_date` column to `assignments` table |
-| `CourseDetail.instructor` | Hardcoded `'أ. عبد السلام'` | Join to instructor profile |
+| `CourseDetail.instructor` | Hardcoded `'أكاديمية شفاء العليل'` | Join to instructor profile |
 | `CourseDetail.studentsCount` | Always `0` | Aggregate from `orders` table |

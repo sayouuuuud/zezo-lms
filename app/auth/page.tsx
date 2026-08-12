@@ -12,7 +12,7 @@ import { prisma } from '@/lib/prisma'
 export const metadata: Metadata = {
   title: 'تسجيل الدخول / حساب جديد',
   description:
-    'سجّل دخولك أو اعمل حساب جديد على منصة الأستاذ عبد السلام للرياضيات للثانوية العامة.',
+    'سجّل دخولك أو اعمل حساب جديد على اكاديمية شفاء العليل ',
   robots: { index: false, follow: false },
 }
 

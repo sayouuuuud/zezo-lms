@@ -566,14 +566,14 @@ function LinksEditor({ label, links, onChange }: { label: string; links: FooterL
 }
 
 const SOCIAL_META: { platform: SocialPlatform; label: string; placeholder: string }[] = [
-  { platform: 'website',   label: 'الموقع الرسمي',  placeholder: 'https://example.com' },
-  { platform: 'telegram',  label: 'تليجرام',         placeholder: 'https://t.me/username' },
-  { platform: 'whatsapp',  label: 'واتساب',          placeholder: 'https://wa.me/201000000000' },
-  { platform: 'youtube',   label: 'يوتيوب',          placeholder: 'https://youtube.com/@channel' },
-  { platform: 'facebook',  label: 'فيسبوك',          placeholder: 'https://facebook.com/page' },
-  { platform: 'instagram', label: 'انستجرام',        placeholder: 'https://instagram.com/username' },
-  { platform: 'tiktok',    label: 'تيك توك',         placeholder: 'https://tiktok.com/@username' },
-  { platform: 'twitter',   label: 'تويتر / X',       placeholder: 'https://x.com/username' },
+  { platform: 'website', label: 'الموقع الرسمي', placeholder: 'https://example.com' },
+  { platform: 'telegram', label: 'تليجرام', placeholder: 'https://t.me/username' },
+  { platform: 'whatsapp', label: 'واتساب', placeholder: 'https://wa.me/201000000000' },
+  { platform: 'youtube', label: 'يوتيوب', placeholder: 'https://youtube.com/@channel' },
+  { platform: 'facebook', label: 'فيسبوك', placeholder: 'https://facebook.com/page' },
+  { platform: 'instagram', label: 'انستجرام', placeholder: 'https://instagram.com/username' },
+  { platform: 'tiktok', label: 'تيك توك', placeholder: 'https://tiktok.com/@username' },
+  { platform: 'twitter', label: 'تويتر / X', placeholder: 'https://x.com/username' },
 ]
 
 function SocialLinksEditor({
@@ -609,14 +609,12 @@ function SocialLinksEditor({
                 role="switch"
                 aria-checked={social.enabled}
                 onClick={() => update(social.platform, { enabled: !social.enabled })}
-                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                  social.enabled ? 'bg-primary' : 'bg-input'
-                }`}
+                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${social.enabled ? 'bg-primary' : 'bg-input'
+                  }`}
               >
                 <span
-                  className={`pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg transition-transform ${
-                    social.enabled ? 'translate-x-4' : 'translate-x-0'
-                  }`}
+                  className={`pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg transition-transform ${social.enabled ? 'translate-x-4' : 'translate-x-0'
+                    }`}
                 />
               </button>
               {/* Label */}
@@ -798,7 +796,7 @@ function LoginPanelEditor({ value, onChange }: { value: LoginPanelContent; onCha
   return (
     <div className="space-y-4">
       <Field label="اسم المنصة / المدرس" hint="يظهر في صفحة تسجيل الدخول بدلاً من الاسم الثابت">
-        <Input value={value.brandName ?? ''} onChange={(e) => set('brandName', e.target.value)} className="text-right" placeholder="مثال: عبد السلام" />
+        <Input value={value.brandName ?? ''} onChange={(e) => set('brandName', e.target.value)} className="text-right" placeholder="مثال: أكاديمية شفاء العليل" />
       </Field>
       <ImageField
         label="شعار المنصة (اختياري)"
@@ -807,7 +805,7 @@ function LoginPanelEditor({ value, onChange }: { value: LoginPanelContent; onCha
         onChange={(v) => set('logoUrl', v)}
       />
       <Separator />
-      <Field label="البادج (النص الصغير فوق العنوان)" hint="مثال: منصة الرياضيات الأولى للثانوية العامة">
+      <Field label="البادج (النص الصغير فوق العنوان)" hint="مثال: منصة اللغة العربية الأولى للثانوية العامة">
         <Input value={value.badge} onChange={(e) => set('badge', e.target.value)} className="text-right" />
       </Field>
       <Field label="العنوان الرئيسي" hint="العنوان الكبير في الجانب الأيسر">

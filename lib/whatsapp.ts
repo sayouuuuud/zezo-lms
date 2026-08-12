@@ -67,7 +67,7 @@ export async function sendWhatsAppText(input: {
     if (logRow) {
       await prisma.whatsapp_messages
         .update({ where: { id: logRow.id }, data: { status: 'failed', error } })
-        .catch(() => {})
+        .catch(() => { })
     }
     return { ok: false, error }
   }
@@ -92,7 +92,7 @@ export async function sendWhatsAppText(input: {
           where: { id: logRow.id },
           data: { status: 'sent', sent_at: new Date(), provider_message_id: providerId },
         })
-        .catch(() => {})
+        .catch(() => { })
     }
     return { ok: true }
   } catch (e: any) {
@@ -108,7 +108,7 @@ export function paymentApprovedText(input: {
   items: string[]
 }) {
   const lines = [
-    'منصة عبد السلام للرياضيات',
+    'منصة أكاديمية شفاء العليل ل اللغة العربية',
     '',
     `أهلاً ${input.studentName || 'يا بطل'} 👋`,
     `تم تأكيد دفع طلبك رقم ${input.orderCode} بمبلغ ${input.total} ج.م.`,

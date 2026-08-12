@@ -70,14 +70,14 @@ export function StudentMessagesPage({
       prev.map((c) =>
         c.id === convoId
           ? {
-              ...c,
-              lastTime: 'الآن',
-              status: 'open',
-              messages: [
-                ...c.messages,
-                { id: `${c.id}-${c.messages.length + 1}`, fromMe: true, text, time: 'الآن' },
-              ],
-            }
+            ...c,
+            lastTime: 'الآن',
+            status: 'open',
+            messages: [
+              ...c.messages,
+              { id: `${c.id}-${c.messages.length + 1}`, fromMe: true, text, time: 'الآن' },
+            ],
+          }
           : c,
       ),
     )
@@ -100,7 +100,7 @@ export function StudentMessagesPage({
           </div>
           <h2 className="text-lg font-bold text-foreground">لا توجد تذاكر بعد</h2>
           <p className="max-w-sm text-sm text-muted-foreground">
-            عندك استفسار أو مشكلة؟ افتح تذكرة دعم وتواصل مباشرةً مع الأستاذ عبد السلام.
+            عندك استفسار أو مشكلة؟ افتح تذكرة دعم وتواصل مباشرةً مع أكاديمية شفاء العليل.
           </p>
           <Button onClick={() => setNewOpen(true)} className="mt-2">
             <Plus className="size-4" />
@@ -322,7 +322,7 @@ function PageIntro({ totalUnread, onNew }: { totalUnread: number; onNew: () => v
           تذاكر الدعم
         </h1>
         <p className="text-sm text-muted-foreground">
-          تواصل مباشرةً مع الأستاذ عبد السلام بخصوص اشتراكاتك أو أي استفسار.
+          تواصل مباشرةً مع أكاديمية شفاء العليل بخصوص اشتراكاتك أو أي استفسار.
           {totalUnread > 0 && (
             <span className="mr-1 font-semibold text-primary"> لديك {totalUnread} ردود جديدة.</span>
           )}
@@ -424,7 +424,7 @@ function NewTicketModal({
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={4}
-          placeholder="اكتب استفسارك للأستاذ عبد السلام..."
+          placeholder="اكتب استفسارك للأستاذ أكاديمية شفاء العليل..."
           className="mb-4 w-full resize-none rounded-xl border border-border bg-secondary/50 px-4 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:bg-background"
         />
 

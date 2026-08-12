@@ -9,11 +9,6 @@ import { signIn, signOut } from 'next-auth/react'
 
 type Tab = 'login' | 'register'
 
-const DEMO_ADMIN = {
-  email: 'admin@test.com',
-  password: '111111',
-}
-
 export function AuthForm({ initialTab = 'login', stages = [] }: { initialTab?: Tab; stages?: { id: string; slug: string | null; title: string }[] }) {
   const [tab, setTab] = useState<Tab>(initialTab)
   const [showPassword, setShowPassword] = useState(false)
@@ -22,9 +17,9 @@ export function AuthForm({ initialTab = 'login', stages = [] }: { initialTab?: T
   const [doneMessage, setDoneMessage] = useState('')
   const [error, setError] = useState('')
 
-  // login state — prefilled with the demo admin account
-  const [loginEmail, setLoginEmail] = useState(DEMO_ADMIN.email)
-  const [loginPassword, setLoginPassword] = useState(DEMO_ADMIN.password)
+  // login state
+  const [loginEmail, setLoginEmail] = useState('')
+  const [loginPassword, setLoginPassword] = useState('')
 
   // register state
   const [name, setName] = useState('')
@@ -369,7 +364,6 @@ export function AuthForm({ initialTab = 'login', stages = [] }: { initialTab?: T
         <Field
           id="email"
           label="البريد الإلكتروني"
-          hint={tab === 'login' ? DEMO_ADMIN.email : undefined}
           icon={<Mail className="size-4" />}
           type="email"
           placeholder="you@example.com"
@@ -434,14 +428,6 @@ export function AuthForm({ initialTab = 'login', stages = [] }: { initialTab?: T
               className="flex flex-wrap items-center gap-2 text-sm font-semibold text-foreground dark:text-foreground"
             >
               كلمة السر
-              {tab === 'login' && (
-                <span
-                  dir="ltr"
-                  className="rounded-md bg-primary/15 px-1.5 py-0.5 font-mono text-xs font-bold text-primary dark:bg-primary/15 dark:text-primary"
-                >
-                  {DEMO_ADMIN.password}
-                </span>
-              )}
             </label>
             {tab === 'login' && (
               <button type="button" className="text-xs font-semibold text-primary hover:underline dark:text-primary">
