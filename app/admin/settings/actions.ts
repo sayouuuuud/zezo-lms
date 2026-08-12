@@ -228,6 +228,64 @@ export async function updatePlatformSettings(input: {
 
 import bcrypt from 'bcryptjs'
 
+export async function updateAdminEmail(input: { newEmail: string; currentPassword: string }) {
+  if (!(await hasResourceAccess('settings', 'manage'))) {
+    return { error: 'غير مسموح. لازم تكون أدمن.' }
+  }
+  const session = await auth()
+  const authUser = session?.user
+  if (!authUser) return { error: 'لازم تسجّل دخول.' }
+
+  const newEmail = (input.newEmail || '').trim().toLowerCase()
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!newEmail || !emailPattern.test(newEmail)) {
+    return { error: 'البريد الإلكتروني غير صالح.' }
+  }
+  if (!input.currentPassword) {
+    return { error: 'أدخل كلمة المرور الحالية لتأكيد التغيير.' }
+  }
+
+  try {
+    const dbUser = await prisma.user.findUnique({
+      where: { id: authUser.id },
+      select: { id: true, email: true, encrypted_password: true }
+    })
+    if (!dbUser) return { error: 'المستخدم غير موجود.' }
+
+    if (!dbUser.encrypted_password) {
+      return { error: 'تعذّر تأكيد الهوية. حاول تاني.' }
+    }
+
+    const isValid = await bcrypt.compare(input.currentPassword, dbUser.encrypted_password)
+    if (!isValid) {
+      return { error: 'كلمة المرور الحالية غير صحيحة.' }
+    }
+
+    if (newEmail === (dbUser.email || '').toLowerCase()) {
+      return { error: 'هذا هو بريدك الإلكتروني الحالي.' }
+    }
+
+    const existing = await prisma.user.findFirst({
+      where: { email: { equals: newEmail, mode: 'insensitive' }, id: { not: dbUser.id } },
+      select: { id: true }
+    })
+    if (existing) {
+      return { error: 'البريد الإلكتروني مستخدم من حساب آخر.' }
+    }
+
+    await prisma.$transaction([
+      prisma.user.update({ where: { id: dbUser.id }, data: { email: newEmail } }),
+      prisma.profiles.update({ where: { id: dbUser.id }, data: { email: newEmail } }),
+    ])
+
+    logActivity({ action: 'update', resource: 'settings', targetLabel: 'تغيير البريد الإلكتروني للأدمن' }).catch(() => {})
+    revalidatePath('/admin', 'layout')
+    return { success: true }
+  } catch (err: any) {
+    return { error: 'تعذّر تحديث البريد الإلكتروني. حاول تاني.' }
+  }
+}
+
 export async function updateAdminPassword(newPassword: string) {
   if (!(await hasResourceAccess('settings', 'manage'))) {
     return { error: 'غير مسموح. لازم تكون أدمن.' }

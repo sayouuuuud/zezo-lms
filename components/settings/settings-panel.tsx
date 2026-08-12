@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { updateSettings, updateAdminProfile, updatePlatformSettings, updateAdminPassword } from '@/app/admin/settings/actions'
+import { updateSettings, updateAdminProfile, updatePlatformSettings, updateAdminPassword, updateAdminEmail } from '@/app/admin/settings/actions'
 
 import { uploadFiles } from '@/lib/uploadthing'
 import { useTheme } from '@/components/theme-provider'
@@ -177,9 +177,35 @@ export function SettingsPanel({
   const [lastName, setLastName] = useState(
     nameParts.length > 1 ? nameParts.slice(1).join(' ') : settings.profile.lastName,
   )
-  const [email] = useState(adminProfile?.email || settings.profile.email)
+  const [email, setEmail] = useState(adminProfile?.email || settings.profile.email)
   const [phone, setPhone] = useState(adminProfile?.phone || settings.profile.phone)
   const [bio, setBio] = useState(settings.profile.bio)
+
+  // Email change requires re-typing the current password to confirm identity.
+  const [emailPassword, setEmailPassword] = useState('')
+  const [isEmailPending, startEmailTransition] = useTransition()
+
+  function handleEmailSave() {
+    const trimmedEmail = email.trim()
+    if (!trimmedEmail) {
+      toast.error('البريد الإلكتروني مطلوب.')
+      return
+    }
+    if (!emailPassword) {
+      toast.error('أدخل كلمة المرور الحالية لتأكيد التغيير.')
+      return
+    }
+    startEmailTransition(async () => {
+      const res = await updateAdminEmail({ newEmail: trimmedEmail, currentPassword: emailPassword })
+      if (res?.error) {
+        toast.error(res.error)
+      } else {
+        toast.success('تم تحديث البريد الإلكتروني بنجاح')
+        setEmailPassword('')
+        router.refresh()
+      }
+    })
+  }
 
   // Avatar upload state.
   const [avatarUrl, setAvatarUrl] = useState(adminProfile?.avatarUrl || '')
@@ -452,17 +478,6 @@ export function SettingsPanel({
                 <Input value={lastName} onChange={e => setLastName(e.target.value)} className="text-right" />
               </div>
               <div>
-                <FieldLabel>البريد الإلكتروني</FieldLabel>
-                <Input
-                  type="email"
-                  value={email}
-                  readOnly
-                  disabled
-                  className="text-right"
-                  dir="ltr"
-                />
-              </div>
-              <div>
                 <FieldLabel>رقم الهاتف</FieldLabel>
                 <Input
                   type="tel"
@@ -486,6 +501,43 @@ export function SettingsPanel({
             <div className="flex justify-start gap-3">
               <Button onClick={handleProfileSave} disabled={isPending || uploadingAvatar}>حفظ التغييرات</Button>
               <Button variant="outline">إلغاء</Button>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-4">
+              <div className="text-right">
+                <h4 className="text-base font-semibold text-foreground">البريد الإلكتروني</h4>
+                <p className="mt-0.5 text-sm text-muted-foreground">
+                  تغيير البريد الإلكتروني لحساب الأدمن يتطلب إدخال كلمة المرور الحالية لتأكيد الهوية.
+                </p>
+              </div>
+              <div className="grid gap-4 sm:max-w-md">
+                <div>
+                  <FieldLabel>البريد الإلكتروني الجديد</FieldLabel>
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="text-right"
+                    dir="ltr"
+                  />
+                </div>
+                <div>
+                  <FieldLabel>كلمة المرور الحالية</FieldLabel>
+                  <Input
+                    type="password"
+                    value={emailPassword}
+                    onChange={(e) => setEmailPassword(e.target.value)}
+                    dir="ltr"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-start gap-3">
+                <Button onClick={handleEmailSave} disabled={isEmailPending}>
+                  {isEmailPending ? <Loader2 className="size-4 animate-spin" /> : 'حفظ البريد الإلكتروني'}
+                </Button>
+              </div>
             </div>
           </div>
         )}
