@@ -32,8 +32,7 @@ import {
   type PaymentMethod,
 } from '@/lib/student-billing-data'
 import { resubmitPayment } from '@/app/student/actions'
-import { UploadDropzone } from '@/lib/uploadthing'
-import '@uploadthing/react/styles.css'
+import { ReceiptDropzone } from '@/components/ui/receipt-dropzone'
 
 const statusStyles: Record<InvoiceStatus, string> = {
   'غير مدفوعة':
@@ -456,24 +455,7 @@ function PaymentModal({
           <label className="mb-1.5 block text-xs font-semibold text-muted-foreground">
             صورة إيصال التحويل
           </label>
-          <UploadDropzone
-            endpoint="receiptUploader"
-            onClientUploadComplete={(res) => {
-              if (res && res[0]) {
-                setFileName(res[0].url)
-              }
-            }}
-            onUploadError={(error: Error) => {
-              alert(`فشل الرفع: ${error.message}`)
-            }}
-            config={{ mode: "auto" }}
-            className="w-full ut-label:text-primary ut-button:bg-primary ut-button:ut-readying:bg-primary/80"
-          />
-          {fileName && (
-            <p className="mt-2 flex items-center justify-center gap-1.5 text-xs font-semibold text-emerald-600">
-              <Check className="size-4" /> تم رفع الصورة بنجاح
-            </p>
-          )}
+          <ReceiptDropzone value={fileName} onChange={setFileName} className="w-full" />
         </div>
 
         <Button

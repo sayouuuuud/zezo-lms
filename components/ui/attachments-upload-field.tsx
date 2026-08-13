@@ -22,10 +22,9 @@ function attachmentType(file: File): LessonAttachment['type'] {
 const iconFor = (type: LessonAttachment['type']) =>
   type === 'image' ? FileImage : type === 'other' ? FileIcon : FileText
 
-// Multi-file attachment picker used by the lesson editor. Uploads each file to
-// UploadThing storage and keeps a list of {name, url, type} entries.
-// Note: lessonAttachment route uses awaitServerData: false so startUpload resolves
-// immediately after the S3 upload, without waiting for UploadThing's external webhook.
+// Multi-file attachment picker used by the lesson editor. Each file is uploaded
+// straight to Cloudflare R2 with a presigned PUT, and we keep a list of
+// {name, url, type} entries where url points at the /api/attachments proxy.
 export function AttachmentsUploadField({
   value,
   onChange,

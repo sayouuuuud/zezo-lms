@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/prisma'
 import { verifyVideoToken, isLatestSession } from '@/lib/video-token'
 import { userCanAccessLecture } from '@/lib/lecture-access'
+import { createR2DownloadUrl } from '@/lib/r2'
+import { MEDIA_PREFIX } from '@/lib/media-kinds'
 import { auth } from '@/auth'
 
 // Node runtime: video-token.ts uses node:crypto which is unavailable in Edge.
@@ -37,5 +39,19 @@ export async function GET(
     return deny(403)
   }
 
+  // فيديوهات R2 محفوظة كـ /api/media/<folder>/<file> — نوقّعها هنا مباشرةً
+  // بدل الاعتماد على راوت الميديا العام (اللي مش بيتحقق من صلاحية المحاضرة).
+  if (lesson.video_url.startsWith('/api/media/')) {
+    const objectKey = `${MEDIA_PREFIX}${lesson.video_url.replace('/api/media/', '')}`
+    if (objectKey.includes('..')) return deny(400)
+    try {
+      const signedUrl = await createR2DownloadUrl(objectKey, 7200)
+      return Response.redirect(signedUrl, 302)
+    } catch {
+      return deny(500)
+    }
+  }
+
+  // روابط قديمة مطلقة (UploadThing / Supabase Storage) تفضل شغّالة كما هي
   return Response.redirect(lesson.video_url, 302)
 }

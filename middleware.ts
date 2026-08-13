@@ -6,7 +6,7 @@ import type { AccessLevel, ResourceKey } from '@/lib/permissions'
 
 const { auth } = NextAuth(authConfig)
 
-const PUBLIC_PATHS = ['/', '/auth', '/stages', '/api/auth', '/api/track', '/api/uploadthing', '/api/webhooks']
+const PUBLIC_PATHS = ['/', '/auth', '/stages', '/api/auth', '/api/track', '/api/media', '/api/webhooks']
 
 function isPublicPath(pathname: string) {
   if (pathname === '/') return true

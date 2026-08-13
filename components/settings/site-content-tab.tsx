@@ -18,12 +18,12 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
-import { uploadFiles } from '@/lib/uploadthing'
+import { uploadToR2 } from '@/lib/upload-to-r2'
+import type { MediaKind } from '@/lib/media-kinds'
 import {
   updateSiteContentSection,
   resetSiteContentSection,
 } from '@/app/admin/settings/actions'
-import type { OurFileRouter } from '@/app/api/uploadthing/core'
 import { DEFAULT_SITE_CONTENT } from '@/lib/site-content-defaults'
 import type {
   SiteContent,
@@ -147,13 +147,13 @@ function ImageField({
   value,
   onChange,
   hint,
-  endpoint = 'siteImage'
+  kind = 'site'
 }: {
   label: string
   value: string
   onChange: (url: string) => void
   hint?: string
-  endpoint?: keyof OurFileRouter
+  kind?: MediaKind
 }) {
   const [uploading, setUploading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -166,9 +166,7 @@ function ImageField({
     }
     setUploading(true)
     try {
-      const res = await uploadFiles(endpoint, { files: [file] })
-      if (!res || !res[0]) throw new Error('فشل الرفع')
-      const url = res[0].url
+      const { url } = await uploadToR2(file, kind)
       onChange(url)
       toast.success('تم رفع الصورة')
     } catch (e) {
@@ -324,13 +322,13 @@ function HeroEditor({ value, onChange }: { value: HeroContent; onChange: (v: Her
         value={value.teacherImageLight}
         onChange={(v) => set('teacherImageLight', v)}
         hint="مسار من public/ أو رابط خارجي"
-        endpoint="instructorImage"
+        kind="instructor"
       />
       <ImageField
         label="صورة الأستاذ (الوضع الداكن)"
         value={value.teacherImageDark}
         onChange={(v) => set('teacherImageDark', v)}
-        endpoint="instructorImage"
+        kind="instructor"
       />
       <Field label="النص البديل للصورة (alt)">
         <Input value={value.teacherImageAlt} onChange={(e) => set('teacherImageAlt', e.target.value)} className="text-right" />
@@ -673,10 +671,13 @@ function NavbarEditor({ value, onChange }: { value: NavbarContent; onChange: (v:
     const file = e.target.files?.[0]
     if (!file) return
     startLogoUpload(async () => {
-      const res = await uploadFiles('siteImage', { files: [file] })
-      if (!res || !res[0]) throw new Error('فشل الرفع')
-      const url = res[0].url
-      if (url) set('logoUrl', url)
+      try {
+        const { url } = await uploadToR2(file, 'site')
+        if (url) set('logoUrl', url)
+        toast.success('تم رفع اللوجو')
+      } catch (err) {
+        toast.error(`فشل رفع اللوجو: ${err instanceof Error ? err.message : 'خطأ غير معروف'}`)
+      }
     })
   }
 
@@ -818,7 +819,7 @@ function LoginPanelEditor({ value, onChange }: { value: LoginPanelContent; onCha
         placeholder="مثال: شرح مبسّط لكل درس خطوة بخطوة"
       />
       <Separator />
-      <p className="text-sm font-medium text-foreground text-right">الإحصائيات (الأرقام أسفل الصفحة)</p>
+      <p className="text-sm font-medium text-foreground text-right">الإحص��ئيات (الأرقام أسفل الصفحة)</p>
       {value.stats.map((stat, i) => (
         <div key={i} className="flex items-center gap-3 rounded-lg border border-border p-3">
           <Button
