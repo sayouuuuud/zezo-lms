@@ -1,5 +1,18 @@
 # خطة تنفيذية مفصّلة — إعادة هيكلة تخزين الميديا (R2 للفيديو + UploadThing للصور)
 
+> ⚠️ **مستند تاريخي — تم تجاوزه.**
+> تم لاحقاً توحيد **كل** التخزين (صور + فيديو + مرفقات + إيصالات + أفاتار) على
+> **Cloudflare R2** وإزالة UploadThing بالكامل من المشروع. الحالة الحالية:
+> - `lib/media-kinds.ts` — تعريف أنواع الميديا وحدود الحجم والمجلدات.
+> - `lib/media-actions.ts` — `getMediaUploadUrl()` (presigned PUT بصلاحية أدمن/طالب).
+> - `lib/upload-to-r2.ts` — helper الرفع من المتصفح مع نسبة التقدّم.
+> - `app/api/media/[...key]/route.ts` — راوت العرض (redirect لرابط R2 موقّع).
+> - الروابط تُخزَّن في الداتابيز كـ `/api/media/<folder>/<file>`؛ الروابط القديمة
+>   (`utfs.io` / `*.ufs.sh` / `*.supabase.co`) تفضل شغّالة كما هي.
+>
+> ما تحت هذا السطر يُقرأ كمرجع للـ Milestones المتعلقة بالفيديو/HLS/الحذف فقط،
+> وكل ما يخص UploadThing (خصوصاً M1 و M3) **لم يعد قابلاً للتطبيق**.
+
 > **الجمهور المستهدف:** موديل التنفيذ (Sonnet).
 > **الأسلوب:** نفّذ Milestone تلو الآخر بالترتيب. لا تبدأ Milestone جديد قبل استيفاء "معايير القبول" للـ Milestone السابق.
 > **لغة الكود:** التعليقات بالعربي مسموحة (متسقة مع الكودبيس)، أسماء الدوال/الملفات بالإنجليزي.
@@ -197,7 +210,7 @@ export async function clearMigrationCache(): Promise<...>
 ### 4.2 توصيل الإعدادات بالـ FFmpeg
 - `services/transcoder/src/db.ts::getStreamingConfig` يتجاهل `segment_duration_sec` وrenditions ثابتة.
   - مرّر `segment_duration_sec` إلى `ffmpeg.ts` بدل `hls_time` الثابت (=4).
-  - (اختياري) أضف عمود `renditions` لـ `platform_settings` أو أبقِ الافتراضي مع تعليق.
+  - (اختياري) أضف عمود `renditions` لـ `platform_settings` أو أبقِ الافت��اضي مع تعليق.
 - `ffmpeg.ts::writeMasterManifest`: أضف سمة `CODECS` (`avc1.4d401f,mp4a.40.2`) لتحسين التوافق.
 
 ### 4.3 التحقق من مسارات HLS (مراجعة فقط — تبدو صحيحة)
