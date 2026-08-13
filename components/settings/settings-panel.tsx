@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { updateSettings, updateAdminProfile, updatePlatformSettings, updateAdminPassword, updateAdminEmail } from '@/app/admin/settings/actions'
 
-import { uploadFiles } from '@/lib/uploadthing'
+import { uploadToR2 } from '@/lib/upload-to-r2'
 import { useTheme } from '@/components/theme-provider'
 import {
   User,
@@ -223,9 +223,7 @@ export function SettingsPanel({
     }
     setUploadingAvatar(true)
     try {
-      const res = await uploadFiles('siteImage', { files: [file] })
-      if (!res || !res[0]) throw new Error('فشل الرفع')
-      const url = res[0].url
+      const { url } = await uploadToR2(file, 'avatar')
       setAvatarUrl(url)
       toast.success('تم رفع الصورة، اضغط حفظ التغييرات لتثبيتها')
     } catch (e) {
@@ -720,7 +718,7 @@ export function SettingsPanel({
                     [
                       { key: 'newDevice', label: 'جهاز جديد' },
                       { key: 'deviceLimit', label: 'تجاوز حد الأجهزة' },
-                      { key: 'concurrent', label: 'دخول متزامن' },
+                      { key: 'concurrent', label: '��خول متزامن' },
                       { key: 'cityChange', label: 'تغيير المدينة' },
                       { key: 'countryChange', label: 'تغيير الدولة' },
                       { key: 'impossibleTravel', label: 'سفر مستحيل' },

@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 // ─────────────────────────────────────────────────────────────────────────────
 // Secure video playback tokens
 //
-// The real video file (on UploadThing) is never exposed to the browser. Instead
+// The real video file (on Cloudflare R2) is never exposed to the browser. Instead
 // the player receives a short-lived, signed token that is redeemed through the
 // streaming proxy (`/api/lectures/[lessonId]/stream`). The token is bound to:
 //   • the lesson id

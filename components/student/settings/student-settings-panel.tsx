@@ -19,7 +19,7 @@ import { Separator } from '@/components/ui/separator'
 import { ToggleSwitch } from '@/components/settings/toggle-switch'
 import { useStudent } from '@/components/student/student-context'
 import { useTheme } from '@/components/theme-provider'
-import { uploadFiles } from '@/lib/uploadthing'
+import { uploadToR2 } from '@/lib/upload-to-r2'
 import { AvatarImage } from '@/components/ui/avatar'
 import { updateStudentProfile, updateStudentPreferences, updateStudentPassword } from '@/app/student/actions'
 import { colorPresets, applyColorPreset, type PresetId } from '@/lib/color-presets'
@@ -75,11 +75,7 @@ export function StudentSettingsPanel({ profile: initProfile }: { profile?: any }
     }
     setIsUploading(true)
     try {
-      const resUpload = await uploadFiles('avatarUploader', {
-        files: [file],
-      })
-      if (!resUpload || !resUpload[0]) throw new Error('Upload failed')
-      const publicUrl = resUpload[0].url
+      const { url: publicUrl } = await uploadToR2(file, 'avatar')
       setAvatarUrl(publicUrl)
       const res = await updateStudentProfile({
         fullName: `${firstName} ${lastName}`.trim(),

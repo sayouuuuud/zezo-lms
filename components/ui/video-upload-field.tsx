@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AlertCircle, CheckCircle2, Film, Loader2, RefreshCw, Upload, X } from 'lucide-react'
 import { toast } from 'sonner'
-import { useUploadThing } from '@/lib/uploadthing'
+import { uploadToR2 } from '@/lib/upload-to-r2'
 import { cn } from '@/lib/utils'
 import {
   getVideoUploadUrl,
@@ -51,7 +51,7 @@ export function VideoUploadField({
   onChange,
   label = 'فيديو الدرس',
   hint,
-  // وضع R2 streaming — لو undefined أو false يُستخدم UploadThing القديم
+  // وضع R2 + HLS — لو false يُرفع الفيديو كملف واحد على R2 بدون تحويل
   streamingEnabled = false,
   lessonId,
   // callback يُستدعى بمدة الفيديو المنسّقة (m:ss) بمجرد اختيار الملف
@@ -65,28 +65,10 @@ export function VideoUploadField({
   lessonId?: string
   onDurationDetected?: (formatted: string) => void
 }) {
-  // حالة الرفع العادي (UploadThing lessonVideo)
+  // حالة الرفع المباشر بدون تحويل HLS (يذهب لنفس bucket R2 تحت media/videos)
   const [uploading, setUploading]           = useState(false)
   const [legacyProgress, setLegacyProgress] = useState(0)   // 0-100
   const inputRef                            = useRef<HTMLInputElement>(null)
-
-  const { startUpload: startLegacyUpload } = useUploadThing('lessonVideo', {
-    onUploadProgress: (p) => setLegacyProgress(p),
-    onClientUploadComplete: (res) => {
-      const url = res?.[0]?.url
-      if (url) {
-        onChange(url)
-        toast.success('تم رفع الفيديو')
-      }
-      setUploading(false)
-      setLegacyProgress(0)
-    },
-    onUploadError: (err) => {
-      toast.error(`فشل الرفع: ${err.message}`)
-      setUploading(false)
-      setLegacyProgress(0)
-    },
-  })
 
   // حالة R2 streaming
   const [uploadProgress, setUploadProgress] = useState(0)          // 0-100
@@ -209,7 +191,7 @@ export function VideoUploadField({
   }
 
   // ---------------------------------------------------------------
-  // Legacy Upload (UploadThing lessonVideo endpoint — fallback when R2 disabled)
+  // رفع مباشر إلى R2 بدون تحويل HLS (لما الستريمنج مغلق)
   // ---------------------------------------------------------------
   async function handleLegacyFile(file: File | undefined) {
     if (!file) return
@@ -219,7 +201,17 @@ export function VideoUploadField({
     }
     setUploading(true)
     setLegacyProgress(0)
-    await startLegacyUpload([file])
+    try {
+      const { url } = await uploadToR2(file, 'video', { onProgress: setLegacyProgress })
+      onChange(url)
+      toast.success('تم رفع الفيديو')
+    } catch (e) {
+      toast.error(`فشل الرفع: ${e instanceof Error ? e.message : 'خطأ غير معروف'}`)
+    } finally {
+      setUploading(false)
+      setLegacyProgress(0)
+      if (inputRef.current) inputRef.current.value = ''
+    }
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -337,7 +329,7 @@ export function VideoUploadField({
         </div>
       )}
 
-      {/* Progress bar (legacy Supabase Storage mode) */}
+      {/* Progress bar (رفع مباشر إلى R2 بدون HLS) */}
       {!isStreaming && uploading && (
         <div className="space-y-1.5 rounded-xl border border-border bg-secondary/40 p-3">
           <div className="flex items-center justify-between text-xs">

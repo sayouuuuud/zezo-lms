@@ -4,40 +4,29 @@ import Image from 'next/image'
 import { useRef, useState } from 'react'
 import { ImagePlus, X, Upload, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { useUploadThing } from '@/lib/uploadthing'
+import { uploadToR2 } from '@/lib/upload-to-r2'
+import type { MediaKind } from '@/lib/media-kinds'
 import { cn } from '@/lib/utils'
 
 // Reusable image picker used by admin curriculum forms.
-// Uploads directly to UploadThing (curriculumImage endpoint) so all images
-// live alongside other UploadThing assets — no Supabase Storage needed.
+// Uploads straight to Cloudflare R2 via a presigned PUT, then stores the
+// /api/media/... proxy URL so the bucket can stay private.
 export function ImageUploadField({
   value,
   onChange,
   label = 'الصورة',
   hint,
+  kind = 'curriculum',
 }: {
   value: string
   onChange: (url: string) => void
   label?: string
   hint?: string
+  kind?: MediaKind
 }) {
   const [uploading, setUploading] = useState(false)
+  const [progress, setProgress] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
-
-  const { startUpload } = useUploadThing('curriculumImage', {
-    onClientUploadComplete: (res) => {
-      const url = res?.[0]?.url
-      if (url) {
-        onChange(url)
-        toast.success('تم رفع الصورة')
-      }
-      setUploading(false)
-    },
-    onUploadError: (err) => {
-      toast.error(`فشل الرفع: ${err.message}`)
-      setUploading(false)
-    },
-  })
 
   async function handleFile(file: File | undefined) {
     if (!file) return
@@ -46,7 +35,18 @@ export function ImageUploadField({
       return
     }
     setUploading(true)
-    await startUpload([file])
+    setProgress(0)
+    try {
+      const { url } = await uploadToR2(file, kind, { onProgress: setProgress })
+      onChange(url)
+      toast.success('تم رفع الصورة')
+    } catch (e) {
+      toast.error(`فشل الرفع: ${e instanceof Error ? e.message : 'خطأ غير معروف'}`)
+    } finally {
+      setUploading(false)
+      setProgress(0)
+      if (inputRef.current) inputRef.current.value = ''
+    }
   }
 
   return (
@@ -64,6 +64,7 @@ export function ImageUploadField({
                 alt="معاينة"
                 fill
                 sizes="96px"
+                unoptimized={value.startsWith('/api/media/')}
                 className="object-contain p-1"
               />
               <button
@@ -103,7 +104,9 @@ export function ImageUploadField({
             {uploading ? (
               <>
                 <Loader2 className="size-7 animate-spin text-primary" />
-                <span className="text-sm text-muted-foreground">جاري الرفع...</span>
+                <span className="text-sm text-muted-foreground">
+                  {progress > 0 ? `جاري الرفع... ${progress}%` : 'جاري الرفع...'}
+                </span>
               </>
             ) : (
               <>
