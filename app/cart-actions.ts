@@ -315,7 +315,23 @@ export async function getPaymentAccounts(): Promise<
   { method: string; account: string; holder: string; note?: string }[]
 > {
   const content = await getSiteContent()
-  return (content.payment_accounts?.items ?? []).filter((item) => item.account.trim() !== '')
+  const seenMethods = new Set<string>()
+
+  // A configured account is the source of truth for an enabled payment method.
+  // Normalize and de-duplicate it here so every student checkout uses the same
+  // current list that the administrator saved in Site Content.
+  return (content.payment_accounts?.items ?? []).flatMap((item) => {
+    const method = item.method.trim()
+    const account = item.account.trim()
+    if (!method || !account || seenMethods.has(method)) return []
+    seenMethods.add(method)
+    return [{
+      method,
+      account,
+      holder: item.holder.trim(),
+      note: item.note?.trim() || undefined,
+    }]
+  })
 }
 
 export async function getCheckoutDefaults(): Promise<{ name: string; phone: string; email: string }> {
@@ -348,6 +364,12 @@ export async function createOrder(input: {
   const user = session?.user
   if (!user || !user.id) return { error: 'unauthenticated' as const }
 
+  const activePaymentAccounts = await getPaymentAccounts()
+  const method = input.method.trim()
+  if (!method || !activePaymentAccounts.some((account) => account.method === method)) {
+    return { error: 'وسيلة الدفع المختارة غير متاحة حالياً. حدّث الصفحة واختر وسيلة مفعّلة.' }
+  }
+
   const items = await getCartItems()
   if (!items || items.length === 0) return { error: 'السلة فارغة.' }
 
@@ -373,7 +395,7 @@ export async function createOrder(input: {
         student_name: input.name,
         student_email: user.email ?? '',
         student_phone: input.phone,
-        method: input.method,
+        method,
         reference: input.reference ?? '',
         note: input.note ?? '',
         receipt_url: input.receiptUrl ?? null,

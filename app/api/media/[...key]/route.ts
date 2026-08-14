@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createR2DownloadUrl, isR2Configured } from '@/lib/r2'
 import { MEDIA_PREFIX } from '@/lib/media-kinds'
 
@@ -9,12 +9,15 @@ type Params = { key: string[] }
 
 /**
  * GET /api/media/<folder>/<file>
- * يعمل redirect لرابط R2 موقّع — الـ bucket يفضل private ومحدش يوصله مباشرة.
+ *
+ * تُحفظ الملفات في bucket خاص. لا نعيد 302 إلى R2 لأن مُحسّن الصور في
+ * Next.js يعامل استجابة التحويل الداخلية كاستجابة غير صالحة؛ بدلاً من ذلك
+ * نوقّع طلب R2 على الخادم ثم نمرّر المحتوى ونوعه مباشرةً إلى المتصفح.
  */
 export async function GET(
   _req: NextRequest,
   context: { params: Promise<Params> },
-): Promise<NextResponse> {
+): Promise<Response> {
   const { key } = await context.params
   const objectKey = `${MEDIA_PREFIX}${key.join('/')}`
 
@@ -27,11 +30,28 @@ export async function GET(
   }
 
   try {
-    // نوقّع الرابط لمدة ساعة، ونخلي المتصفح يكاش الـ redirect أقل من كده
     const signedUrl = await createR2DownloadUrl(objectKey, 3600)
-    const res = NextResponse.redirect(signedUrl, 302)
-    res.headers.set('Cache-Control', 'private, max-age=1800')
-    return res
+    const upstream = await fetch(signedUrl, { cache: 'no-store' })
+
+    if (!upstream.ok || !upstream.body) {
+      console.error('[media] R2 response error:', upstream.status, objectKey)
+      return NextResponse.json({ error: 'تعذّر جلب الملف' }, { status: upstream.status || 502 })
+    }
+
+    const headers = new Headers()
+    headers.set('Content-Type', upstream.headers.get('content-type') ?? 'application/octet-stream')
+    headers.set('Cache-Control', 'public, max-age=3600, s-maxage=86400')
+
+    const length = upstream.headers.get('content-length')
+    if (length) headers.set('Content-Length', length)
+
+    const disposition = upstream.headers.get('content-disposition')
+    if (disposition) headers.set('Content-Disposition', disposition)
+
+    return new Response(upstream.body, {
+      status: 200,
+      headers,
+    })
   } catch (error) {
     console.error('[media] download error:', error)
     return NextResponse.json({ error: 'تعذّر جلب الملف' }, { status: 500 })

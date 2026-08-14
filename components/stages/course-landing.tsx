@@ -61,7 +61,7 @@ function LectureRow({
   // A lecture is "free to watch" if explicitly flagged OR its price is 0.
   // Don't show "مجانية" badge when the lecture has a price > 0 even if isFree
   // is set, because isFree just means "preview" in that context.
-  const freeAccess = !!lecture.isFree
+  const freeAccess = !!lecture.isFree || lecture.lessons.some((lesson) => lesson.isFree)
   const free = freeAccess && (lecture.price === 0 || lecture.price == null)
   const lessonsCount = lecture.lessons.length
   const lectureInCart = lecture.dbId ? inCart(lecture.dbId) : false
@@ -156,7 +156,11 @@ export function CourseLanding({
 
   const groups = groupLecturesBySection(course)
   const totalLessons = course.lectures.reduce((sum, l) => sum + l.lessons.length, 0)
-  const freeCount = course.lectures.filter((l) => l.isFree && (l.price === 0 || l.price == null)).length
+  const freeCount = course.lectures.filter(
+    (lecture) =>
+      (lecture.isFree || lecture.lessons.some((lesson) => lesson.isFree)) &&
+      (lecture.price === 0 || lecture.price == null),
+  ).length
   const basePath = `/stages/${stage.id}/${branch.id}/${course.id}`
 
   async function handleSubscribe() {

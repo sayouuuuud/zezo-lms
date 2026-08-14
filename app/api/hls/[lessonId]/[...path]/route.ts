@@ -40,42 +40,72 @@ async function resolveAuthorizedVideo(
   req: NextRequest,
   lessonId: string,
 ): Promise<AuthorizationResult> {
-  const token = req.nextUrl.searchParams.get('t')
-  const payload = verifyVideoToken(token)
-  if (!payload || payload.lessonId !== lessonId) {
-    return { ok: false, status: 401 }
-  }
-
-  const session = await auth()
-  const user = session?.user
-  if (!user || user.id !== payload.userId) {
-    return { ok: false, status: 401 }
-  }
-
-  if (!(await isLatestSession(user.id, lessonId, payload.sid))) {
-    return { ok: false, status: 401 }
-  }
-
   const lesson = await prisma.lessons.findUnique({
     where: { id: lessonId },
-    select: { video_id: true, lecture_id: true }
+    select: {
+      video_id: true,
+      lecture_id: true,
+      is_free: true,
+      lectures: {
+        select: {
+          is_free: true,
+          monthly_courses: { select: { price: true } },
+        },
+      },
+    },
   })
 
   if (!lesson?.video_id || !lesson.lecture_id) {
     return { ok: false, status: 404 }
   }
 
-  const hasAccess = await userCanAccessLecture(user.id, lesson.lecture_id)
-  if (!hasAccess) {
-    const isStaff = await hasResourceAccess('courses', 'view')
-    if (!isStaff) {
-      return { ok: false, status: 403 }
+  // A lecture-level free-preview flag is intentionally public: the landing
+  // page may not have an authenticated student at all. It is still scoped to
+  // this exact lesson and only the lecture selected by the administrator.
+  const isFreePreview =
+    lesson.is_free === true ||
+    lesson.lectures?.is_free === true ||
+    Number(lesson.lectures?.monthly_courses?.price ?? -1) === 0
+
+  if (!isFreePreview) {
+    const token = req.nextUrl.searchParams.get('t')
+    const payload = verifyVideoToken(token)
+    if (!payload || payload.lessonId !== lessonId) {
+      return { ok: false, status: 401 }
+    }
+
+    const session = await auth()
+    const authenticatedUserId = session?.user?.id
+
+    // A browser's media-element request can lose the auth cookie behind a
+    // reverse proxy even though the page itself is authenticated. The signed
+    // playback token is bound to its owner, expiry, and latest server-side sid.
+    // When a cookie is present it must still belong to that same owner.
+    if (authenticatedUserId && authenticatedUserId !== payload.userId) {
+      return { ok: false, status: 401 }
+    }
+
+    const playbackUserId = authenticatedUserId ?? payload.userId
+    if (!(await isLatestSession(playbackUserId, lessonId, payload.sid))) {
+      return { ok: false, status: 401 }
+    }
+
+    const hasAccess = await userCanAccessLecture(playbackUserId, lesson.lecture_id)
+    if (!hasAccess) {
+      // Staff bypass remains available only when there is an authenticated cookie.
+      // Token-only requests must retain the original owner's lecture entitlement.
+      const isStaff = authenticatedUserId
+        ? await hasResourceAccess('courses', 'view')
+        : false
+      if (!isStaff) {
+        return { ok: false, status: 403 }
+      }
     }
   }
 
   const video = await prisma.videos.findUnique({
     where: { id: lesson.video_id },
-    select: { id: true, r2_hls_prefix: true, status: true }
+    select: { id: true, r2_hls_prefix: true, status: true },
   })
 
   if (!video || video.status !== 'ready') {

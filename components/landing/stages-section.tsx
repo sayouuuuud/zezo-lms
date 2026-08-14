@@ -39,7 +39,6 @@ export function StagesSection({ stages: dbStages }: { stages?: any[] }) {
     ? dbStages.map((s, idx) => ({
       id: s.id || idx + 1,
       name: s.title || s.name || DEFAULT_STAGES[idx % DEFAULT_STAGES.length].name,
-      description: s.subtitle || s.description || DEFAULT_STAGES[idx % DEFAULT_STAGES.length].description,
       image: s.image || DEFAULT_STAGES[idx % DEFAULT_STAGES.length].image,
       units: (s.branches && s.branches.length > 0)
         ? s.branches.map((b: any) => b.title || b.name)
@@ -99,7 +98,6 @@ export function StagesSection({ stages: dbStages }: { stages?: any[] }) {
                 illustrationSrc={(stage as any).image ?? '/images/math-ink.png'}
                 illustrationAlt={stage.name}
                 title={stage.name}
-                description={stage.description}
                 buttonLabel="ادخل المرحلة"
                 onAction={() => window.location.href = `/stages/${stage.id}`}
               />

@@ -186,7 +186,11 @@ export async function getFreeLectureBySlug(
   logDebug('curriculum.lecture find result', lecture
     ? `FOUND id="${lecture.id}" isFree=${lecture.isFree} price=${lecture.price}`
     : `NOT FOUND - lectureSlug="${lectureSlug}" available ids: [${result.course.lectures.map((l) => `"${l.id}"`).join(', ')}]`)
-  // Allow watch if: lecture is explicitly free (isFree=true), OR the whole course is free (price 0)
-  if (!lecture || (!lecture.isFree && Number(result.course.price) !== 0)) return undefined
+  // A free preview may be set on the full lecture or on one of its lessons.
+  // A zero-price course remains fully accessible as before.
+  const hasFreePreviewLesson = lecture?.lessons.some((lesson) => lesson.isFree) ?? false
+  if (!lecture || (!lecture.isFree && !hasFreePreviewLesson && Number(result.course.price) !== 0)) {
+    return undefined
+  }
   return { ...result, lecture }
 }

@@ -27,14 +27,6 @@ function formatEGP(value: number) {
   return new Intl.NumberFormat('ar-EG').format(value)
 }
 
-const PAYMENT_METHODS = [
-  'فودافون كاش',
-  'اتصالات كاش',
-  'أورنج كاش',
-  'إنستا باي',
-  'تحويل بنكي',
-]
-
 type View = 'cart' | 'checkout' | 'done'
 
 export function CartModal() {
@@ -63,7 +55,7 @@ export function CartModal() {
   // form state
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
-  const [method, setMethod] = useState(PAYMENT_METHODS[0])
+  const [method, setMethod] = useState('')
   const [reference, setReference] = useState('')
   const [note, setNote] = useState('')
   const [receiptUrl, setReceiptUrl] = useState('')
@@ -109,7 +101,19 @@ export function CartModal() {
         setName((v) => v || d.name)
         setPhone((v) => v || d.phone)
       })
-      getPaymentAccounts().then(setPaymentAccounts).catch(() => {})
+      getPaymentAccounts()
+        .then((accounts) => {
+          setPaymentAccounts(accounts)
+          setMethod((currentMethod) =>
+            accounts.some((account) => account.method === currentMethod)
+              ? currentMethod
+              : accounts[0]?.method ?? '',
+          )
+        })
+        .catch(() => {
+          setPaymentAccounts([])
+          setMethod('')
+        })
     }
   }, [view])
 
@@ -135,6 +139,10 @@ export function CartModal() {
     e.preventDefault()
     if (!name.trim() || !phone.trim()) {
       toast.error('من فضلك اكتب الاسم ورقم الهاتف')
+      return
+    }
+    if (!method || paymentAccounts.length === 0) {
+      toast.error('لا توجد وسيلة دفع مفعّلة حالياً. تواصل مع الإدارة.')
       return
     }
     if (!receiptUrl) {
@@ -320,13 +328,23 @@ export function CartModal() {
                   value={method}
                   onChange={(e) => setMethod(e.target.value)}
                   className={inputCls}
+                  disabled={paymentAccounts.length === 0}
                 >
-                  {PAYMENT_METHODS.map((m) => (
-                    <option key={m} value={m}>
-                      {m}
-                    </option>
-                  ))}
+                  {paymentAccounts.length === 0 ? (
+                    <option value="">لا توجد وسيلة دفع مفعّلة حالياً</option>
+                  ) : (
+                    paymentAccounts.map((account) => (
+                      <option key={account.method} value={account.method}>
+                        {account.method}
+                      </option>
+                    ))
+                  )}
                 </select>
+                {paymentAccounts.length === 0 && (
+                  <p className="mt-1.5 text-xs text-destructive">
+                    لا توجد وسيلة دفع مفعّلة حالياً. تواصل مع الإدارة.
+                  </p>
+                )}
               </Field>
 
               {(() => {

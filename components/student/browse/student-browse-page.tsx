@@ -345,10 +345,11 @@ function CourseDetailsModal({ course, inCart, onAddCourse, onClose, purchasedCou
               )}
               {group.lectures.map((lecture, index) => {
                 const isOpen = expanded[lecture.dbId ?? lecture.slug] ?? false
-                // A lecture is free only when explicitly marked isFree.
-                // course.price === 0 means the whole bundle is free to purchase,
-                // not that individual lectures inside it are free to preview.
-                const isLectureFree = lecture.isFree
+                // A free preview may be configured on the lecture itself or on
+                // at least one of its lessons. A zero-price course is still a
+                // purchaseable bundle, not an automatic preview for every lesson.
+                const isLectureFree =
+                  lecture.isFree || lecture.lessons.some((lesson) => lesson.isFree)
                 const isFreeAccess = isLectureFree || isCoursePurchased
                 const addedLecture = lecture.dbId ? lectureInCart(lecture.dbId) : false
                 

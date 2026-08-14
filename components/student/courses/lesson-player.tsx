@@ -180,7 +180,6 @@ export function LessonPlayer({
                           href={att.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          download={att.name}
                           className="flex items-center gap-3 rounded-xl border border-border bg-secondary/40 px-4 py-2.5 text-sm transition-colors hover:bg-secondary"
                         >
                           <Icon className="size-4 shrink-0 text-primary" />
