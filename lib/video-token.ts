@@ -10,13 +10,12 @@ import { prisma } from '@/lib/prisma'
 // streaming proxy (`/api/lectures/[lessonId]/stream`). The token is bound to:
 //   • the lesson id
 //   • the student's auth user id
-//   • a random session id ("sid") that is rotated on every lecture open
+//   • a random session id ("sid") that is reused for one short playback window
 //
-// Because only the LATEST sid (stored in `lecture_playback_sessions`) is
-// accepted, re-opening the lecture — anywhere — instantly invalidates every
-// previously issued link. A link copied from DevTools is therefore useless to
-// anyone else (it needs that student's login cookie) and stops working for the
-// student too as soon as they open the lecture again.
+// The sid is stored in `lecture_playback_sessions`. Reusing an unexpired sid
+// prevents duplicate server renders of the same lesson from invalidating the
+// URL that was already handed to the browser. A copied link remains useless
+// without the student's login cookie.
 // ─────────────────────────────────────────────────────────────────────────────
 
 // never reaches the client.
@@ -87,14 +86,32 @@ export function verifyVideoToken(token: string | null | undefined): VideoTokenPa
 }
 
 /**
- * Rotates the playback session for (user, lesson) and returns a fresh signed
- * token. Any token issued for a previous open is invalidated because its sid no
- * longer matches the stored one.
+ * Returns a signed playback token for a short session window.
+ *
+ * A page can be rendered more than once while the player is mounting. Rotating
+ * the sid on every render made the first URL stale and caused `/api/hls` to
+ * reject the request with 401. Reuse the current sid until its window expires,
+ * then rotate it. The route still requires the matching logged-in user cookie.
  */
 export async function createPlaybackToken(
   userId: string,
   lessonId: string,
 ): Promise<string> {
+  const nowSeconds = Math.floor(Date.now() / 1000)
+  const existing: Array<{ sid: string; updated_at: Date }> = await prisma.$queryRaw`
+    SELECT sid, updated_at
+    FROM lecture_playback_sessions
+    WHERE user_id = ${userId}::uuid AND lesson_id = ${lessonId}::uuid
+  `
+
+  const current = existing[0]
+  if (current) {
+    const expiresAt = Math.floor(new Date(current.updated_at).getTime() / 1000) + TOKEN_TTL_SECONDS
+    if (expiresAt > nowSeconds) {
+      return signVideoToken({ lessonId, userId, sid: current.sid, exp: expiresAt })
+    }
+  }
+
   const sid = crypto.randomBytes(16).toString('hex')
   const now = new Date()
   await prisma.$executeRaw`
@@ -103,7 +120,7 @@ export async function createPlaybackToken(
     ON CONFLICT (user_id, lesson_id)
     DO UPDATE SET sid = EXCLUDED.sid, updated_at = EXCLUDED.updated_at
   `
-  const exp = Math.floor(Date.now() / 1000) + TOKEN_TTL_SECONDS
+  const exp = nowSeconds + TOKEN_TTL_SECONDS
   return signVideoToken({ lessonId, userId, sid, exp })
 }
 
