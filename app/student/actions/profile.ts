@@ -40,7 +40,7 @@ export async function getStudentProfile() {
       stage_id: true,
       status: true,
       joined_at: true,
-      stages: { select: { title: true } },
+      stages: { select: { id: true, slug: true, title: true } },
     }
   })
 
@@ -56,6 +56,9 @@ export async function getStudentProfile() {
     .toUpperCase()
 
   const stageTitle = student?.stages?.title ?? profile?.grade ?? ''
+  // Curriculum uses the stage slug as its public id, while students.stage_id
+  // stores the database UUID. Prefer the related slug for server-side filtering.
+  const stageId = student?.stages?.slug ?? null
 
   return {
     name: displayName,
@@ -68,6 +71,7 @@ export async function getStudentProfile() {
     initials,
     level: stageTitle,
     stageTitle,
+    stageId,
     status: student?.status ?? 'نشط',
     joinedAt: student?.joined_at ? student.joined_at.toISOString() : null,
     code: student?.code ?? '',
