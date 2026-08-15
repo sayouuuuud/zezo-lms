@@ -13,6 +13,7 @@ import {
   Monitor,
   Globe,
   MapPin,
+  School,
   Wifi,
   ChevronDown,
   BookOpen,
@@ -290,6 +291,29 @@ export function StudentProfileView({ profile, studentDbId }: StudentProfileViewP
                 <span className="text-muted-foreground" dir="ltr">
                   {student.phone}
                 </span>
+              </li>
+              <li className="flex items-center gap-3">
+                <Phone className="size-4 shrink-0 text-muted-foreground" />
+                <div className="min-w-0">
+                  <span className="ml-2 text-xs text-muted-foreground">رقم ولي الأمر</span>
+                  <span className="text-muted-foreground" dir="ltr">
+                    {student.parentPhone || 'غير مضاف'}
+                  </span>
+                </div>
+              </li>
+              <li className="flex items-center gap-3">
+                <MapPin className="size-4 shrink-0 text-muted-foreground" />
+                <div className="min-w-0">
+                  <span className="ml-2 text-xs text-muted-foreground">العنوان</span>
+                  <span className="text-muted-foreground">{student.address || 'غير مضاف'}</span>
+                </div>
+              </li>
+              <li className="flex items-center gap-3">
+                <School className="size-4 shrink-0 text-muted-foreground" />
+                <div className="min-w-0">
+                  <span className="ml-2 text-xs text-muted-foreground">اسم المدرسة</span>
+                  <span className="text-muted-foreground">{student.schoolName || 'غير مضاف'}</span>
+                </div>
               </li>
               <li className="flex items-center gap-3">
                 <Calendar className="size-4 shrink-0 text-muted-foreground" />

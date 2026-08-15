@@ -7,6 +7,9 @@ export type StudentRecord = {
   name: string
   email: string
   phone: string
+  parentPhone?: string
+  address?: string
+  schoolName?: string
   gender: StudentGender
   avatar?: string
   courses: number

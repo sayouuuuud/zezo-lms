@@ -182,11 +182,23 @@ export async function getStudentProfileData(code: string): Promise<StudentProfil
   const studentId = studentRow.id
   const studentUserId = studentRow.user_id
 
+  // Registration details may exist on either students (new records) or
+  // profiles (older records). Read both and prefer the student row values.
+  const profileRow = studentUserId
+    ? await prisma.profiles.findUnique({
+        where: { id: studentUserId },
+        select: { parent_phone: true, address: true, school_name: true },
+      })
+    : null
+
   const student: any = {
     id: studentRow.code,
     name: studentRow.name,
     email: studentRow.email || '',
     phone: studentRow.phone || '',
+    parentPhone: studentRow.parent_phone || profileRow?.parent_phone || '',
+    address: studentRow.address || profileRow?.address || '',
+    schoolName: studentRow.school_name || profileRow?.school_name || '',
     gender: studentRow.gender as StudentGender,
     avatar: studentRow.avatar || undefined,
     courses: 0,
