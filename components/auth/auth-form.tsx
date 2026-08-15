@@ -2,14 +2,22 @@
 
 import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
-import { Eye, EyeOff, Loader2, Lock, Mail, Phone, User, GraduationCap, Check, AlertCircle, ShieldCheck, ArrowRight } from 'lucide-react'
+import { Eye, EyeOff, Loader2, Lock, Mail, Phone, User, GraduationCap, MapPin, School, Check, AlertCircle, ShieldCheck, ArrowRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { recordLogin, resolveLoginDestination } from '@/app/auth/audit-actions'
 import { signIn, signOut } from 'next-auth/react'
 
 type Tab = 'login' | 'register'
 
-export function AuthForm({ initialTab = 'login', stages = [] }: { initialTab?: Tab; stages?: { id: string; slug: string | null; title: string }[] }) {
+export function AuthForm({
+  initialTab = 'login',
+  stages = [],
+  registrationFields = { parentPhone: true, address: true, schoolName: true },
+}: {
+  initialTab?: Tab
+  stages?: { id: string; slug: string | null; title: string }[]
+  registrationFields?: { parentPhone: boolean; address: boolean; schoolName: boolean }
+}) {
   const [tab, setTab] = useState<Tab>(initialTab)
   const [showPassword, setShowPassword] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -26,6 +34,9 @@ export function AuthForm({ initialTab = 'login', stages = [] }: { initialTab?: T
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [grade, setGrade] = useState('')
+  const [parentPhone, setParentPhone] = useState('')
+  const [address, setAddress] = useState('')
+  const [schoolName, setSchoolName] = useState('')
   const [password, setPassword] = useState('')
 
   // OTP / email verification step
@@ -94,6 +105,9 @@ export function AuthForm({ initialTab = 'login', stages = [] }: { initialTab?: T
             full_name: name.trim(),
             phone: phone.trim(),
             grade,
+            parent_phone: parentPhone.trim(),
+            address: address.trim(),
+            school_name: schoolName.trim(),
           }),
         })
         const result = await res.json().catch(() => ({}))
@@ -386,6 +400,46 @@ export function AuthForm({ initialTab = 'login', stages = [] }: { initialTab?: T
               autoComplete="tel"
               dir="ltr"
             />
+
+            {registrationFields.parentPhone && (
+              <Field
+                id="parent_phone"
+                label="رقم ولي الأمر"
+                icon={<Phone className="size-4" />}
+                type="tel"
+                placeholder="01xxxxxxxxx"
+                value={parentPhone}
+                onChange={setParentPhone}
+                autoComplete="tel"
+                dir="ltr"
+              />
+            )}
+
+            {registrationFields.address && (
+              <Field
+                id="address"
+                label="عنوان الطالب"
+                icon={<MapPin className="size-4" />}
+                type="text"
+                placeholder="اكتب عنوانك"
+                value={address}
+                onChange={setAddress}
+                autoComplete="street-address"
+              />
+            )}
+
+            {registrationFields.schoolName && (
+              <Field
+                id="school_name"
+                label="اسم المدرسة"
+                icon={<School className="size-4" />}
+                type="text"
+                placeholder="اكتب اسم المدرسة"
+                value={schoolName}
+                onChange={setSchoolName}
+                autoComplete="organization"
+              />
+            )}
 
             <div className="space-y-1.5">
               <label htmlFor="grade" className="block text-sm font-semibold text-foreground dark:text-foreground">

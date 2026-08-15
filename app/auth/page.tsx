@@ -8,6 +8,7 @@ import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
 import { getSiteContent } from '@/lib/site-content'
 import { prisma } from '@/lib/prisma'
+import { getGlobalSettings } from '@/lib/settings-data'
 
 export const metadata: Metadata = {
   title: 'تسجيل الدخول / حساب جديد',
@@ -44,6 +45,12 @@ export default async function AuthPage({
     select: { id: true, slug: true, title: true },
     orderBy: { sort_order: 'asc' }
   })
+  const globalSettings = await getGlobalSettings()
+  const registrationFields = {
+    parentPhone: globalSettings.security?.registrationFields?.parentPhone !== false,
+    address: globalSettings.security?.registrationFields?.address !== false,
+    schoolName: globalSettings.security?.registrationFields?.schoolName !== false,
+  }
 
   return (
     <main className="relative min-h-screen bg-background lg:grid lg:grid-cols-2 dark:bg-background">
@@ -151,7 +158,7 @@ export default async function AuthPage({
                 سجّل دخولك أو اعمل حساب جديد وابدأ رحلتك في التفوق.
               </p>
             </div>
-            <AuthForm initialTab={initialTab} stages={stages} />
+            <AuthForm initialTab={initialTab} stages={stages} registrationFields={registrationFields} />
           </div>
         </div>
       </section>

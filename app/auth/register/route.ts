@@ -14,6 +14,9 @@ type Body = {
   full_name?: string
   phone?: string
   grade?: string
+  parent_phone?: string
+  address?: string
+  school_name?: string
 }
 
 async function generateStudentCode(): Promise<string> {
@@ -52,7 +55,14 @@ async function resolveStageId(grade: string): Promise<string | null> {
 async function ensureStudentRow(
   userId: string,
   email: string,
-  metadata: { full_name: string; phone: string; grade: string },
+  metadata: {
+    full_name: string
+    phone: string
+    grade: string
+    parent_phone: string
+    address: string
+    school_name: string
+  },
 ) {
   const existing = await prisma.students.findFirst({
     where: { user_id: userId },
@@ -65,7 +75,12 @@ async function ensureStudentRow(
     if (!existing.stage_id && stageId) {
       await prisma.students.update({
         where: { id: existing.id },
-        data: { stage_id: stageId }
+        data: {
+          stage_id: stageId,
+          parent_phone: metadata.parent_phone || undefined,
+          address: metadata.address || undefined,
+          school_name: metadata.school_name || undefined,
+        }
       })
     }
     return
@@ -79,6 +94,9 @@ async function ensureStudentRow(
       name: metadata.full_name || email.split('@')[0],
       email,
       phone: metadata.phone || null,
+      parent_phone: metadata.parent_phone || null,
+      address: metadata.address || null,
+      school_name: metadata.school_name || null,
       stage_id: stageId,
     }
   })
@@ -123,6 +141,9 @@ export async function POST(request: NextRequest) {
     full_name: body.full_name?.trim() ?? '',
     phone: body.phone?.trim() ?? '',
     grade: body.grade ?? '',
+    parent_phone: body.parent_phone?.trim() ?? '',
+    address: body.address?.trim() ?? '',
+    school_name: body.school_name?.trim() ?? '',
     role: 'student',
   }
 
@@ -143,6 +164,30 @@ export async function POST(request: NextRequest) {
       created_at: new Date(),
       updated_at: new Date()
     }
+  })
+
+  await prisma.profiles.upsert({
+    where: { id: userId },
+    update: {
+      email,
+      full_name: userMetadata.full_name || email.split('@')[0],
+      phone: userMetadata.phone || null,
+      grade: userMetadata.grade || null,
+      parent_phone: userMetadata.parent_phone || null,
+      address: userMetadata.address || null,
+      school_name: userMetadata.school_name || null,
+    },
+    create: {
+      id: userId,
+      email,
+      full_name: userMetadata.full_name || email.split('@')[0],
+      phone: userMetadata.phone || null,
+      grade: userMetadata.grade || null,
+      parent_phone: userMetadata.parent_phone || null,
+      address: userMetadata.address || null,
+      school_name: userMetadata.school_name || null,
+      role: 'student',
+    },
   })
 
   await ensureStudentRow(userId, email, userMetadata)

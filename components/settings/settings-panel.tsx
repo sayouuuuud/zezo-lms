@@ -167,7 +167,11 @@ export function SettingsPanel({
   const settings = initialSettings || {
     profile: { firstName: 'محمد', lastName: 'أحمد', email: 'mohamed@platform.com', phone: '+20 100 123 4567', bio: 'مدير منصة تعليمية متخصصة في الدورات التقنية.' },
     notifications: { emailNotif: true, pushNotif: true, smsNotif: false, marketingNotif: false, weeklyReport: true },
-    security: { requireEmailVerification: true, allowRegistrations: true },
+    security: {
+      requireEmailVerification: true,
+      allowRegistrations: true,
+      registrationFields: { parentPhone: true, address: true, schoolName: true },
+    },
     preferences: { darkMode: false, autoPublish: false, activeColor: 'navy' as PresetId, neonPreset: 'teal-violet' as NeonPresetId }
   }
 
@@ -319,6 +323,12 @@ export function SettingsPanel({
     settings.security?.allowRegistrations !== false,
   )
 
+  const [registrationFields, setRegistrationFields] = useState({
+    parentPhone: settings.security?.registrationFields?.parentPhone !== false,
+    address: settings.security?.registrationFields?.address !== false,
+    schoolName: settings.security?.registrationFields?.schoolName !== false,
+  })
+
   // Password change fields.
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -355,6 +365,7 @@ export function SettingsPanel({
           ...(initialSettings?.security ?? {}),
           requireEmailVerification,
           allowRegistrations,
+          registrationFields,
           devices: deviceSecurity,
           geo: geoSettings,
         },
@@ -601,6 +612,35 @@ export function SettingsPanel({
                   description="لما يكون مفعّل، أي طالب يقدر ينشئ حساب جديد. قفله يوقف التسجيل تمامًا (مفيد وقت إغلاق القبول)."
                 />
               </div>
+              <div className="rounded-xl border border-border bg-muted/40 p-4">
+                <div className="mb-3 text-right">
+                  <h4 className="text-base font-semibold text-foreground">حقول تسجيل الطالب</h4>
+                  <p className="mt-0.5 text-sm text-muted-foreground">
+                    اختر البيانات الإضافية التي تظهر للطالب عند إنشاء الحساب. الحقول الحالية لا تتأثر بهذه الخيارات.
+                  </p>
+                </div>
+                <div className="space-y-3">
+                  <ToggleSwitch
+                    checked={registrationFields.parentPhone}
+                    onChange={(checked) => setRegistrationFields((current) => ({ ...current, parentPhone: checked }))}
+                    label="رقم ولي الأمر"
+                    description="إظهار حقل رقم ولي الأمر في نموذج التسجيل وبروفايل الطالب."
+                  />
+                  <ToggleSwitch
+                    checked={registrationFields.address}
+                    onChange={(checked) => setRegistrationFields((current) => ({ ...current, address: checked }))}
+                    label="عنوان الطالب"
+                    description="إظهار حقل عنوان الطالب في نموذج التسجيل وبروفايل الطالب."
+                  />
+                  <ToggleSwitch
+                    checked={registrationFields.schoolName}
+                    onChange={(checked) => setRegistrationFields((current) => ({ ...current, schoolName: checked }))}
+                    label="اسم المدرسة"
+                    description="إظهار حقل اسم المدرسة في نموذج التسجيل وبروفايل الطالب."
+                  />
+                </div>
+              </div>
+
               <div className="flex justify-start gap-3 pt-1">
                 <Button onClick={handleSave} disabled={isPending}>
                   حفظ إعدادات الأمان

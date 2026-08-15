@@ -56,6 +56,9 @@ export function StudentSettingsPanel({ profile: initProfile }: { profile?: any }
   const [phone, setPhone] = useState(
     studentProfile.profile?.phone || studentProfile.phone || '',
   )
+  const [parentPhone, setParentPhone] = useState(studentProfile.parentPhone || '')
+  const [address, setAddress] = useState(studentProfile.address || '')
+  const [schoolName, setSchoolName] = useState(studentProfile.schoolName || '')
 
   // password fields
   const [avatarUrl, setAvatarUrl] = useState<string | null>(
@@ -80,6 +83,9 @@ export function StudentSettingsPanel({ profile: initProfile }: { profile?: any }
       const res = await updateStudentProfile({
         fullName: `${firstName} ${lastName}`.trim(),
         phone,
+        parentPhone,
+        address,
+        schoolName,
         avatarUrl: publicUrl,
       })
       if (res?.error) {
@@ -98,7 +104,7 @@ export function StudentSettingsPanel({ profile: initProfile }: { profile?: any }
   function handleProfileSave() {
     const fullName = `${firstName} ${lastName}`.trim()
     startTransition(async () => {
-      const res = await updateStudentProfile({ fullName, phone, avatarUrl })
+      const res = await updateStudentProfile({ fullName, phone, parentPhone, address, schoolName, avatarUrl })
       if (res?.error) {
         toast.error(res.error)
       } else {
@@ -299,6 +305,35 @@ export function StudentSettingsPanel({ profile: initProfile }: { profile?: any }
                   placeholder="01xxxxxxxxx"
                   className="text-right"
                   dir="ltr"
+                />
+              </div>
+              <div>
+                <FieldLabel>رقم ولي الأمر</FieldLabel>
+                <Input
+                  type="tel"
+                  value={parentPhone}
+                  onChange={(e) => setParentPhone(e.target.value)}
+                  placeholder="01xxxxxxxxx"
+                  className="text-right"
+                  dir="ltr"
+                />
+              </div>
+              <div>
+                <FieldLabel>اسم المدرسة</FieldLabel>
+                <Input
+                  value={schoolName}
+                  onChange={(e) => setSchoolName(e.target.value)}
+                  placeholder="اكتب اسم المدرسة"
+                  className="text-right"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <FieldLabel>عنوان الطالب</FieldLabel>
+                <Input
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="اكتب العنوان"
+                  className="text-right"
                 />
               </div>
             </div>

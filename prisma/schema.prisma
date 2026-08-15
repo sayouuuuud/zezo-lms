@@ -1295,6 +1295,9 @@ model profiles {
   full_name             String?
   phone                 String?
   grade                 String?
+  parent_phone          String?
+  address               String?
+  school_name           String?
   role                  String                  @default("student")
   created_at            DateTime                @default(now()) @db.Timestamptz(6)
   color_preset          String?                 @default("navy")
@@ -1440,6 +1443,9 @@ model students {
   name                   String
   email                  String?
   phone                  String?
+  parent_phone           String?
+  address                String?
+  school_name            String?
   gender                 String                   @default("ذكر")
   avatar                 String?
   courses                Int                      @default(0)

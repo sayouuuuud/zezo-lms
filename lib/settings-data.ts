@@ -12,6 +12,11 @@ export type GlobalSettings = {
     requireEmailVerification?: boolean
     // When false, new student registration is closed entirely.
     allowRegistrations?: boolean
+    registrationFields?: {
+      parentPhone?: boolean
+      address?: boolean
+      schoolName?: boolean
+    }
     devices?: Record<string, any>
     geo?: Record<string, any>
   }

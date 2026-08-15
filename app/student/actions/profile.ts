@@ -12,12 +12,36 @@ export async function getStudentProfile() {
 
   const profile = await prisma.profiles.findUnique({
     where: { id: user.id },
-    select: { full_name: true, email: true, phone: true, avatar_url: true, color_preset: true, notif_prefs: true, grade: true }
+    select: {
+      full_name: true,
+      email: true,
+      phone: true,
+      avatar_url: true,
+      color_preset: true,
+      notif_prefs: true,
+      grade: true,
+      parent_phone: true,
+      address: true,
+      school_name: true,
+    }
   })
 
   const student = await prisma.students.findFirst({
     where: { user_id: user.id },
-    select: { id: true, code: true, name: true, phone: true, avatar: true, stage_id: true, status: true, joined_at: true, stages: { select: { title: true } } }
+    select: {
+      id: true,
+      code: true,
+      name: true,
+      phone: true,
+      avatar: true,
+      parent_phone: true,
+      address: true,
+      school_name: true,
+      stage_id: true,
+      status: true,
+      joined_at: true,
+      stages: { select: { title: true } },
+    }
   })
 
   if (!profile && !student) return null
@@ -37,6 +61,9 @@ export async function getStudentProfile() {
     name: displayName,
     email: user.email ?? profile?.email ?? '',
     phone: student?.phone || profile?.phone || '',
+    parentPhone: student?.parent_phone || profile?.parent_phone || '',
+    address: student?.address || profile?.address || '',
+    schoolName: student?.school_name || profile?.school_name || '',
     avatarUrl: student?.avatar || profile?.avatar_url || null,
     initials,
     level: stageTitle,
@@ -52,10 +79,16 @@ export async function getStudentProfile() {
 export async function updateStudentProfile({
   fullName,
   phone,
+  parentPhone,
+  address,
+  schoolName,
   avatarUrl,
 }: {
   fullName: string
   phone?: string
+  parentPhone?: string
+  address?: string
+  schoolName?: string
   avatarUrl?: string | null
 }) {
   const session = await auth()
@@ -67,10 +100,16 @@ export async function updateStudentProfile({
 
   const profilePatch: any = { full_name: trimmedName }
   if (phone !== undefined) profilePatch.phone = phone.trim()
+  if (parentPhone !== undefined) profilePatch.parent_phone = parentPhone.trim()
+  if (address !== undefined) profilePatch.address = address.trim()
+  if (schoolName !== undefined) profilePatch.school_name = schoolName.trim()
   if (avatarUrl !== undefined && avatarUrl !== null) profilePatch.avatar_url = avatarUrl
 
   const studentPatch: any = { name: trimmedName }
   if (phone !== undefined) studentPatch.phone = phone.trim()
+  if (parentPhone !== undefined) studentPatch.parent_phone = parentPhone.trim()
+  if (address !== undefined) studentPatch.address = address.trim()
+  if (schoolName !== undefined) studentPatch.school_name = schoolName.trim()
   if (avatarUrl !== undefined && avatarUrl !== null) studentPatch.avatar = avatarUrl
 
   await prisma.profiles.update({
